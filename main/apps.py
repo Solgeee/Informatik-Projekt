@@ -1,3 +1,4 @@
+#THIS FOLDER IS ONLY FOR CUSTOMIZATION OF THINGS LIKE NAME OF WEBSITE
 from django.apps import AppConfig
 
 
