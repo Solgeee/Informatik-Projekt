@@ -1,4 +1,4 @@
-#REQUEST RESPONSE LOGIC
+#REQUEST RESPONSE logic
 from django.http import HttpResponse
 
 
