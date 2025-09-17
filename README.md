@@ -2,6 +2,7 @@
 Projekt für die Schule 
 USEFUL COPY'S:
 TO RUN VENV IN TERMINAL (linux): source .venv/bin/activate
+TO RUN VENV IN TERMINAL (Windows): venv\Scripts\activate 
 
 Sending mails on Django: https://docs.djangoproject.com/en/5.2/topics/email/ 
 Django Documentation: https://docs.djangoproject.com/en/5.2/
