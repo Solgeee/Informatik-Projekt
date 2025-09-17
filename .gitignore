@@ -1,1 +1,8 @@
 /.venv
+# VS Code settings (keep if you only store shared ones)
+.vscode/
+!.vscode/settings.json   # allow team-wide settings if you want
+
+# System files
+.DS_Store
+Thumbs.db
