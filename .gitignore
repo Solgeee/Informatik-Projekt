@@ -6,3 +6,7 @@
 # System files
 .DS_Store
 Thumbs.db
+
+# Python cache
+/main/__pycache__/
+/web_project/__pycache__/
