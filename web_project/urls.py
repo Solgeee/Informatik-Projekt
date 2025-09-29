@@ -6,5 +6,4 @@ urlpatterns = [
     path("", RedirectView.as_view(url="/main/", permanent=False)),  # Redirect root to /main/
     path("main/", include("main.urls")),
     path("admin/", admin.site.urls),
-#    path("login/", include("login.urls")),  # Added login app URLs
 ]
