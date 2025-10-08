@@ -1,12 +1,16 @@
 #REQUEST RESPONSE LOGIC
 from django.http import HttpResponse
+from django.shortcuts import render
 
 
 def index(request):
     return HttpResponse("Hello, world. You're at the main index.")
+
 def vote(request):
-    return HttpResponse("Where Polls are voted on.")
+    return render(request, "main/vote.html")
+
 def results(request):
-    return HttpResponse("Where Poll results are shown.")
+    return render(request, "main/results.html")
+
 def login(request):
-    return HttpResponse("This is the login page.")
+    return render(request, "main/login.html")
