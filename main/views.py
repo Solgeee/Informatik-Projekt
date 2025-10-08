@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 
 def index(request):
-    return HttpResponse("Hello, world. You're at the main index.")
+    return render(request, "main/index.html")
 
 def vote(request):
     return render(request, "main/vote.html")
