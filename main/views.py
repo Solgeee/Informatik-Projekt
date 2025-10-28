@@ -41,4 +41,25 @@ def results(request, poll_id):
     return render(request, "main/results.html", context)
 
 def login(request):
-    return render(request, "main/login.html")
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            return redirect('index')  # Change to your main page url name
+        else:
+            messages.error(request, 'Invalid username or password.')
+    return render(request, 'main/login.html')
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+        else:
+            User.objects.create_user(username=username, password=password)
+            messages.success(request, 'Registration successful. Please log in.')
+            return redirect('login')
+    return render(request, 'main/register.html')
