@@ -22,6 +22,10 @@
             color: #2c3e50;
             margin-bottom: 24px;
         }
+        h2 {
+            color: #34495e;
+            margin-bottom: 16px;
+        }
         .nav-links {
             margin-top: 32px;
         }
@@ -38,12 +42,48 @@
         .nav-links a:hover {
             background: #217dbb;
         }
+        form {
+            margin-top: 24px;
+            text-align: left;
+        }
+        label {
+            margin-left: 8px;
+        }
+        input[type="submit"] {
+            background: #2ecc71;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        input[type="submit"]:hover {
+            background: #27ae60;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to the Voting Page</h1>
         <p>Cast your vote and navigate to other sections:</p>
+        
+        <h2>{{ poll.question }}</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="radio" name="poll_choice" value="option1" id="option1">
+            <label for="option1">{{ poll.option_one }}</label><br>
+            
+            <input type="radio" name="poll_choice" value="option2" id="option2">
+            <label for="option2">{{ poll.option_two }}</label><br>
+            
+            <input type="radio" name="poll_choice" value="option3" id="option3">
+            <label for="option3">{{ poll.option_three }}</label><br>
+            
+            <input type="submit" value="Vote">
+        </form>
+
         <div class="nav-links">
             <a href="http://127.0.0.1:8000/main/">Main Page</a>
             <a href="http://127.0.0.1:8000/main/results/">Results Page</a>

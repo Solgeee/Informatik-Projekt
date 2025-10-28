@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Results</title>
+    <title>Poll Results</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -10,20 +10,54 @@
             padding: 0;
         }
         .container {
-            max-width: 500px;
+            max-width: 600px;
             margin: 60px auto;
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             padding: 32px;
-            text-align: center;
         }
         h1 {
             color: #2c3e50;
             margin-bottom: 24px;
+            text-align: center;
+        }
+        .poll-question {
+            font-size: 1.4em;
+            color: #34495e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .result-bar {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .option-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+        .total-votes {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
         }
         .nav-links {
             margin-top: 32px;
+            text-align: center;
         }
         .nav-links a {
             display: inline-block;
@@ -40,14 +74,9 @@
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Results Page</h1>
-        <p>See the results and navigate to other sections:</p>
-        <div class="nav-links">
-            <a href="http://127.0.0.1:8000/main/">Main Page</a>
-            <a href="http://127.0.0.1:8000/main/vote/">Vote Page</a>
-            <a href="http://127.0.0.1:8000/main/login/">Login Page</a>
+<body>        <div class="nav-links">
+            <a href="{% url 'home' %}">Main Page</a>
+            <a href="{% url 'vote' poll.id %}">Vote Again</a>
         </div>
     </div>
 </body>
