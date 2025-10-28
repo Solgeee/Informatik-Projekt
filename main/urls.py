@@ -8,4 +8,6 @@ urlpatterns = [
     path("vote/<int:poll_id>/", views.vote, name="vote"),
     path("results/<int:poll_id>/", views.results, name="results"),
     path("login/", views.login, name="login"),
+    path("register/", views.register_view, name="register"),
+
 ]

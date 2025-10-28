@@ -22,20 +22,27 @@
             color: #2c3e50;
             margin-bottom: 24px;
         }
-        .nav-links {
-            margin-top: 32px;
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
         }
-        .nav-links a {
-            display: inline-block;
-            margin: 0 12px;
+        input[type="text"], input[type="password"] {
+            width: 90%;
+            padding: 8px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
             padding: 10px 24px;
             background: #3498db;
             color: #fff;
-            text-decoration: none;
+            border: none;
             border-radius: 6px;
+            cursor: pointer;
             transition: background 0.2s;
         }
-        .nav-links a:hover {
+        .btn:hover {
             background: #217dbb;
         }
     </style>
@@ -43,12 +50,29 @@
 <body>
     <div class="container">
         <h1>Login Page</h1>
-        <p>Please log in or navigate to other sections:</p>
-        <div class="nav-links">
-            <a href="http://127.0.0.1:8000/main/vote/">Vote Page</a>
-            <a href="http://127.0.0.1:8000/main/results/">Results Page</a>
-            <a href="http://127.0.0.1:8000/main/">Main Page</a>
+        <div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="color: #e74c3c; margin-bottom: 16px; font-weight: bold;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <p>Don't have an account?</p>
+        <a href="{% url 'register' %}" class="btn">Register</a>
     </div>
 </body>
 </html>
