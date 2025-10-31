@@ -10,7 +10,7 @@
             padding: 0;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 60px auto;
             background: #fff;
             border-radius: 10px;
@@ -19,44 +19,75 @@
         }
         h1 {
             color: #2c3e50;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             text-align: center;
         }
         .poll-question {
             font-size: 1.4em;
             color: #34495e;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .result-bar {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
+        .results-wrapper {
+            margin-top: 16px;
+        }
+        .result-row {
+            margin: 14px 0;
         }
         .option-label {
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
         }
         .progress-bar {
-            height: 24px;
+            height: 28px;
             background: #e9ecef;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
         }
         .progress {
             height: 100%;
-            background: #3498db;
-            transition: width 0.3s ease;
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-weight: 700;
+        }
+        .progress-one {
+            background: linear-gradient(90deg, #2c5282 0%, #2b6cb0 100%);
+        }
+        .progress-two {
+            background: linear-gradient(90deg, #c53030 0%, #e53e3e 100%);
+        }
+        .progress-three {
+            background: linear-gradient(90deg, #2f855a 0%, #38a169 100%);
+        }
+        .meta-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-top:18px;
+        }
+        .toggle {
+            background:#ecf0f1;
+            border-radius:20px;
+            padding:6px 10px;
+            cursor:pointer;
+            color:#34495e;
+            font-weight:600;
+            border:1px solid #dfe6ea;
         }
         .total-votes {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 18px;
             color: #7f8c8d;
         }
         .nav-links {
-            margin-top: 32px;
+            margin-top: 24px;
             text-align: center;
         }
         .nav-links a {
@@ -74,10 +105,89 @@
         }
     </style>
 </head>
-<body>        <div class="nav-links">
+<body>
+    <div class="container">
+        <h1>Poll Results</h1>
+        <div class="poll-question">{{ poll.question }}</div>
+
+        <div class="meta-row">
+            <div class="total-votes">Total votes: <strong>{{ total }}</strong></div>
+            <div>
+                <span class="toggle" id="toggleView">Show: %</span>
+            </div>
+        </div>
+
+        <div class="results-wrapper">
+            <div class="result-row" data-count="{{ counts.one }}" data-perc="{{ percentages.one|floatformat:2 }}">
+                <div class="option-label"><span>{{ poll.option_one }}</span><span class="value">{{ percentages.one|floatformat:1 }}%</span></div>
+                <div class="progress-bar">
+                    <div class="progress progress-one" style="width:{{ percentages.one }}%"></div>
+                </div>
+            </div>
+
+            <div class="result-row" data-count="{{ counts.two }}" data-perc="{{ percentages.two|floatformat:2 }}">
+                <div class="option-label"><span>{{ poll.option_two }}</span><span class="value">{{ percentages.two|floatformat:1 }}%</span></div>
+                <div class="progress-bar">
+                    <div class="progress progress-two" style="width:{{ percentages.two }}%"></div>
+                </div>
+            </div>
+
+            <div class="result-row" data-count="{{ counts.three }}" data-perc="{{ percentages.three|floatformat:2 }}">
+                <div class="option-label"><span>{{ poll.option_three }}</span><span class="value">{{ percentages.three|floatformat:1 }}%</span></div>
+                <div class="progress-bar">
+                    <div class="progress progress-three" style="width:{{ percentages.three }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-links">
             <a href="{% url 'home' %}">Main Page</a>
             <a href="{% url 'vote' poll.id %}">Vote Again</a>
         </div>
     </div>
+
+    <script>
+        // Toggle between percentage and absolute count views
+        (function(){
+            const toggle = document.getElementById('toggleView');
+            let showPercent = true;
+
+            function updateView() {
+                const rows = document.querySelectorAll('.result-row');
+                // determine max count for absolute width scaling
+                let maxCount = 0;
+                rows.forEach(r => {
+                    const c = parseFloat(r.dataset.count) || 0;
+                    if (c > maxCount) maxCount = c;
+                });
+
+                rows.forEach(r => {
+                    const count = parseFloat(r.dataset.count) || 0;
+                    const perc = parseFloat(r.dataset.perc) || 0;
+                    const progress = r.querySelector('.progress');
+                    const valueEl = r.querySelector('.value');
+
+                    if (showPercent) {
+                        progress.style.width = perc + '%';
+                        valueEl.textContent = perc.toFixed(1) + '%';
+                    } else {
+                        // absolute view: scale width relative to maxCount (avoid divide by zero)
+                        const width = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                        progress.style.width = width + '%';
+                        valueEl.textContent = count + ' votes';
+                    }
+                });
+                toggle.textContent = showPercent ? 'Show: #' : 'Show: %';
+            }
+
+            toggle.addEventListener('click', function(){
+                showPercent = !showPercent;
+                updateView();
+            });
+
+            // initial render
+            updateView();
+        })();
+    </script>
 </body>
 </html>

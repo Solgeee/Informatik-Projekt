@@ -38,8 +38,26 @@ def vote(request, poll_id):
 
 def results(request, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)
+    total = poll.total()
+    counts = {
+        'one': poll.option_one_count,
+        'two': poll.option_two_count,
+        'three': poll.option_three_count,
+    }
+    if total > 0:
+        percentages = {
+            'one': (counts['one'] / total) * 100,
+            'two': (counts['two'] / total) * 100,
+            'three': (counts['three'] / total) * 100,
+        }
+    else:
+        percentages = {'one': 0, 'two': 0, 'three': 0}
+
     context = {
-        'poll': poll
+        'poll': poll,
+        'total': total,
+        'counts': counts,
+        'percentages': percentages,
     }
     return render(request, "main/results.html", context)
 
