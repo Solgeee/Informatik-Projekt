@@ -49,39 +49,70 @@
         label {
             margin-left: 8px;
         }
-        input[type="submit"] {
-            background: #2ecc71;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
+        .vote-options {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .vote-options label {
+            display: block;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
         }
+        .vote-options label:hover {
+            background: #edf2f7;
+        }
+        .button-wrapper {
+            text-align: center;
+            margin-top: 24px;
+        }
+        input[type="submit"] {
+            background: #ecf0f1;
+            color: #34495e;
+            border: 1px solid #dfe6ea;
+            padding: 8px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
         input[type="submit"]:hover {
-            background: #27ae60;
+            background: #dfe6ea;
+            transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to the Voting Page</h1>
-        <p>Cast your vote and navigate to other sections:</p>
-        
-        <h2>{{ poll.question }}</h2>
+        <h1>Cast Your Vote</h1>
+        <div class="poll-question">{{ poll.question }}</div>
 
         <form method="POST">
             {% csrf_token %}
-            <input type="radio" name="poll_choice" value="option1" id="option1">
-            <label for="option1">{{ poll.option_one }}</label><br>
+            <div class="vote-options">
+                <label for="option1">
+                    <input type="radio" name="poll_choice" value="option1" id="option1">
+                    {{ poll.option_one }}
+                </label>
+                
+                <label for="option2">
+                    <input type="radio" name="poll_choice" value="option2" id="option2">
+                    {{ poll.option_two }}
+                </label>
+                
+                <label for="option3">
+                    <input type="radio" name="poll_choice" value="option3" id="option3">
+                    {{ poll.option_three }}
+                </label>
+            </div>
             
-            <input type="radio" name="poll_choice" value="option2" id="option2">
-            <label for="option2">{{ poll.option_two }}</label><br>
-            
-            <input type="radio" name="poll_choice" value="option3" id="option3">
-            <label for="option3">{{ poll.option_three }}</label><br>
-            
-            <input type="submit" value="Vote">
+            <div class="button-wrapper">
+                <input type="submit" value="Submit Vote">
         </form>
 
         <div class="nav-links">

@@ -113,7 +113,7 @@
         <div class="meta-row">
             <div class="total-votes">Total votes: <strong>{{ total }}</strong></div>
             <div>
-                <span class="toggle" id="toggleView">Show: %</span>
+                <span class="toggle" id="toggleView">Switch</span>
             </div>
         </div>
 
@@ -177,7 +177,7 @@
                         valueEl.textContent = count + ' votes';
                     }
                 });
-                toggle.textContent = showPercent ? 'Show: #' : 'Show: %';
+                toggle.textContent = 'Switch';
             }
 
             toggle.addEventListener('click', function(){

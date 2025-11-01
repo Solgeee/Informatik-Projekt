@@ -63,22 +63,53 @@
         }
         .poll-card {
             background: white;
-            padding: 20px;
+            padding: 24px;
             margin: 20px 0;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+        .poll-card h2 {
+            color: #2c3e50;
+            margin-bottom: 16px;
+            font-size: 1.3em;
+        }
+        .poll-options {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        .poll-options li {
+            padding: 10px 16px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            color: #2c3e50;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .poll-options li:hover {
+            background: #edf2f7;
         }
         .vote-button {
             display: inline-block;
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
+            padding: 8px 16px;
+            background: #ecf0f1;
+            color: #34495e;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 20px;
             margin-top: 10px;
+            font-weight: 600;
+            border: 1px solid #dfe6ea;
+            transition: all 0.2s ease;
         }
         .vote-button:hover {
-            background: #2980b9;
+            background: #dfe6ea;
+            transform: translateY(-1px);
+        }
+        .button-wrapper {
+            text-align: center;
+            margin-top: 16px;
         }
     </style>
 </head>
@@ -88,12 +119,14 @@
         {% for poll in polls %}
             <div class="poll-card">
                 <h2>{{ poll.question }}</h2>
-                <ul>
+                <ul class="poll-options">
                     <li>{{ poll.option_one }}</li>
                     <li>{{ poll.option_two }}</li>
                     <li>{{ poll.option_three }}</li>
                 </ul>
-                <a href="{% url 'vote' poll.id %}" class="vote-button">Vote on this poll</a>
+                <div class="button-wrapper">
+                    <a href="{% url 'vote' poll.id %}" class="vote-button">Vote on this poll</a>
+                </div>
             </div>
         {% endfor %}
     </div>
