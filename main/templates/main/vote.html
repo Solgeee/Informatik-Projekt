@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Vote</title>
+    {% load static %}
+    {% include 'main/header.html' with header_style=True %}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,6 +90,7 @@
     </style>
 </head>
 <body>
+    {% include 'main/header.html' with header_content=True %}
     <div class="container">
         <h1>Cast Your Vote</h1>
         <div class="poll-question">{{ poll.question }}</div>

@@ -2,29 +2,31 @@
 <html>
 <head>
     <title>Poll Results</title>
+    {% load static %}
+    {% include 'main/header.html' with header_style=True %}
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6fa;
+            background: #f4f6fa;  /* # Light blue-gray background for subtle page backdrop */
             margin: 0;
             padding: 0;
         }
         .container {
             max-width: 700px;
             margin: 60px auto;
-            background: #fff;
+            background: #fff;  /* # Pure white container for clean content area */
             border-radius: 10px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);  /* # Subtle shadow for depth */
             padding: 32px;
         }
         h1 {
-            color: #2c3e50;
+            color: #2c3e50;  /* # Dark blue-gray for main heading - strong contrast */
             margin-bottom: 16px;
             text-align: center;
         }
         .poll-question {
             font-size: 1.4em;
-            color: #34495e;
+            color: #34495e;  /* # Slightly lighter blue-gray for subheading */
             margin-bottom: 20px;
             text-align: center;
         }
@@ -38,33 +40,33 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
-            color: #2c3e50;
+            color: #2c3e50;  /* # Dark blue-gray for option text - matches heading */
             font-weight: 600;
         }
         .progress-bar {
             height: 28px;
-            background: #e9ecef;
+            background: #e9ecef;  /* # Light gray background for empty progress bar */
             border-radius: 14px;
             overflow: hidden;
         }
         .progress {
             height: 100%;
-            transition: width 0.4s ease;
+            transition: width 0.4s ease;  /* # Smooth animation for width changes */
             display: flex;
             align-items: center;
             justify-content: flex-end;
             padding-right: 8px;
-            color: white;
+            color: white;  /* # White text on colored progress bars */
             font-weight: 700;
         }
         .progress-one {
-            background: linear-gradient(90deg, #2c5282 0%, #2b6cb0 100%);
+            background: linear-gradient(90deg, #2c5282 0%, #2b6cb0 100%);  /* # Deep blue gradient for first option */
         }
         .progress-two {
-            background: linear-gradient(90deg, #c53030 0%, #e53e3e 100%);
+            background: linear-gradient(90deg, #c53030 0%, #e53e3e 100%);  /* # Red gradient for second option */
         }
         .progress-three {
-            background: linear-gradient(90deg, #2f855a 0%, #38a169 100%);
+            background: linear-gradient(90deg, #2f855a 0%, #38a169 100%);  /* # Green gradient for third option */
         }
         .meta-row {
             display:flex;
@@ -73,18 +75,18 @@
             margin-top:18px;
         }
         .toggle {
-            background:#ecf0f1;
+            background:#ecf0f1;  /* # Light gray background for toggle button */
             border-radius:20px;
             padding:6px 10px;
             cursor:pointer;
-            color:#34495e;
+            color:#34495e;  /* # Dark blue-gray text for contrast */
             font-weight:600;
-            border:1px solid #dfe6ea;
+            border:1px solid #dfe6ea;  /* # Slightly darker border for definition */
         }
         .total-votes {
             text-align: center;
             margin-top: 18px;
-            color: #7f8c8d;
+            color: #7f8c8d;  /* # Medium gray for secondary information */
         }
         .nav-links {
             margin-top: 24px;
@@ -94,18 +96,19 @@
             display: inline-block;
             margin: 0 12px;
             padding: 10px 24px;
-            background: #3498db;
+            background: #3498db;  /* # Bright blue for navigation buttons */
             color: #fff;
             text-decoration: none;
             border-radius: 6px;
-            transition: background 0.2s;
+            transition: background 0.2s;  /* # Smooth hover effect */
         }
         .nav-links a:hover {
-            background: #217dbb;
+            background: #217dbb;  /* # Darker blue on hover for feedback */
         }
     </style>
 </head>
 <body>
+    {% include 'main/header.html' with header_content=True %}
     <div class="container">
         <h1>Poll Results</h1>
         <div class="poll-question">{{ poll.question }}</div>
