@@ -1,7 +1,7 @@
 # Core application imports and setup
 from django.http import HttpResponse  # # For returning HTTP responses
 from django.shortcuts import render, get_object_or_404, redirect  # # Core view utilities
-from .models import Poll  # # Poll model for database operations
+from .models import Poll, Vote  # # Poll and Vote models for tracking counts and per-user votes
 from django.contrib.auth import authenticate, login as auth_login, logout  # # Authentication handlers
 from django.contrib.auth.models import User  # # User model for registration
 from django.contrib import messages  # # For flash messages
@@ -18,23 +18,63 @@ def home(request):
 @login_required(login_url='login')  # # Requires authentication, redirects to login if not authenticated
 def vote(request, poll_id):
     poll = get_object_or_404(Poll, pk=poll_id)  # # Get poll or return 404 if not found
-    
+    user = request.user
+
+    # Check if the user has already voted on this poll
+    try:
+        previous_vote = Vote.objects.get(user=user, poll=poll)
+    except Vote.DoesNotExist:
+        previous_vote = None
+
     if request.method == 'POST':  # # Handle vote submission
         selected_option = request.POST.get('poll_choice')  # # Get selected option from form
-        if selected_option == 'option1':  # # Update appropriate counter
+
+        if selected_option not in ('option1', 'option2', 'option3'):
+            return HttpResponse(400, 'Invalid form option')  # # Handle invalid submissions
+
+        # If the user already voted, decrement previous choice count first
+        if previous_vote:
+            # If they selected the same option again, do nothing (no double-count)
+            if selected_option == previous_vote.choice:
+                return redirect('results', poll_id=poll_id)
+
+            # decrement the old counter (guard against negative counts)
+            if previous_vote.choice == 'option1' and poll.option_one_count > 0:
+                poll.option_one_count -= 1
+            elif previous_vote.choice == 'option2' and poll.option_two_count > 0:
+                poll.option_two_count -= 1
+            elif previous_vote.choice == 'option3' and poll.option_three_count > 0:
+                poll.option_three_count -= 1
+
+            # increment new counter
+            if selected_option == 'option1':
+                poll.option_one_count += 1
+            elif selected_option == 'option2':
+                poll.option_two_count += 1
+            elif selected_option == 'option3':
+                poll.option_three_count += 1
+
+            # update saved vote
+            previous_vote.choice = selected_option
+            previous_vote.save()
+            poll.save()
+            return redirect('results', poll_id=poll_id)
+
+        # No previous vote: create a vote record and increment the selected counter
+        if selected_option == 'option1':
             poll.option_one_count += 1
         elif selected_option == 'option2':
             poll.option_two_count += 1
         elif selected_option == 'option3':
             poll.option_three_count += 1
-        else:
-            return HttpResponse(400, 'Invalid form option')  # # Handle invalid submissions
-            
-        poll.save()  # # Save updated vote counts
-        return redirect('results', poll_id=poll_id)  # # Redirect to results page after successful vote
-    
+
+        poll.save()
+        Vote.objects.create(user=user, poll=poll, choice=selected_option)
+        return redirect('results', poll_id=poll_id)
+
     context = {
-        'poll': poll
+        'poll': poll,
+        'previous_choice': previous_vote.choice if previous_vote else None,  # for pre-selecting radios
     }
     return render(request, "main/vote.html", context)
 

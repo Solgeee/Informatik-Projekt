@@ -99,17 +99,17 @@
             {% csrf_token %}
             <div class="vote-options">
                 <label for="option1">
-                    <input type="radio" name="poll_choice" value="option1" id="option1">
+                    <input type="radio" name="poll_choice" value="option1" id="option1" {% if previous_choice == 'option1' %}checked{% endif %}>
                     {{ poll.option_one }}
                 </label>
                 
                 <label for="option2">
-                    <input type="radio" name="poll_choice" value="option2" id="option2">
+                    <input type="radio" name="poll_choice" value="option2" id="option2" {% if previous_choice == 'option2' %}checked{% endif %}>
                     {{ poll.option_two }}
                 </label>
                 
                 <label for="option3">
-                    <input type="radio" name="poll_choice" value="option3" id="option3">
+                    <input type="radio" name="poll_choice" value="option3" id="option3" {% if previous_choice == 'option3' %}checked{% endif %}>
                     {{ poll.option_three }}
                 </label>
             </div>
