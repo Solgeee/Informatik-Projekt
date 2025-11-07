@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['informatik-projekt.onrender.com']
 
+# When deploying behind a proxy (Render) Django may reject the Origin header
+# sent by the browser for POST requests. Add the Render site URL to
+# CSRF_TRUSTED_ORIGINS so Django accepts the Origin header for CSRF checks.
+CSRF_TRUSTED_ORIGINS = [
+    'https://informatik-projekt.onrender.com'
+]
+
 
 # Application definition
 
