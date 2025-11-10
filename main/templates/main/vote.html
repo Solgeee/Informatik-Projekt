@@ -95,31 +95,36 @@
         <h1>Cast Your Vote</h1>
         <div class="poll-question">{{ poll.question }}</div>
 
+        {% if messages %}
+        <div class="form-messages" style="margin: 8px 0 12px 0;">
+            {% for message in messages %}
+                <div style="color:#e74c3c;font-weight:600;">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
             <div class="vote-options">
-                <label for="option1">
-                    <input type="radio" name="poll_choice" value="option1" id="option1" {% if previous_choice == 'option1' %}checked{% endif %}>
-                    {{ poll.option_one }}
-                </label>
-                
-                <label for="option2">
-                    <input type="radio" name="poll_choice" value="option2" id="option2" {% if previous_choice == 'option2' %}checked{% endif %}>
-                    {{ poll.option_two }}
-                </label>
-                
-                <label for="option3">
-                    <input type="radio" name="poll_choice" value="option3" id="option3" {% if previous_choice == 'option3' %}checked{% endif %}>
-                    {{ poll.option_three }}
-                </label>
+                {% if options %}
+                    {% for o in options %}
+                    <label>
+                        <input type="radio" name="option" value="{{ o.id }}" {% if o.id == previous_option_id %}checked{% endif %}>
+                        {{ o.text }}
+                    </label>
+                    {% endfor %}
+                {% else %}
+                    <div class="nav-links">No options available.</div>
+                {% endif %}
             </div>
             
             <div class="button-wrapper">
                 <input type="submit" value="Submit Vote">
+            </div>
         </form>
 
         <div class="nav-links">
-            <a href="https://informatik-projekt.onrender.com/main/">Main Page</a>
+            <a href="{% url 'home' %}">Main Page</a>
         </div>
     </div>
 </body>

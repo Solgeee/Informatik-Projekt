@@ -1,5 +1,5 @@
 {% comment %}Header Component{% endcomment %}
-{% block header_style %}
+{% if header_style %}
 <style>
     .header {
         background: white;
@@ -47,10 +47,9 @@
         height: 60px;
     }
 </style>
+{% endif %}
 
-{% endblock %}
-
-{% block header_content %}
+{% if header_content %}
 <div class="header">
     <a href="{% url 'home' %}" class="header-title">Poll System</a>
     <div class="auth-section">
@@ -64,4 +63,4 @@
     </div>
 </div>
 <div class="header-spacer"></div>
-{% endblock %}
+{% endif %}

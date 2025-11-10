@@ -1,7 +1,7 @@
 # Core application imports and setup
 from django.http import HttpResponse  # # For returning HTTP responses
 from django.shortcuts import render, get_object_or_404, redirect  # # Core view utilities
-from .models import Poll, Vote  # # Poll and Vote models for tracking counts and per-user votes
+from .models import Poll, Vote, Option  # # Poll with dynamic Options and per-user Vote
 from django.contrib.auth import authenticate, login as auth_login, logout  # # Authentication handlers
 from django.contrib.auth.models import User  # # User model for registration
 from django.contrib import messages  # # For flash messages
@@ -9,99 +9,103 @@ from django.contrib.auth.decorators import login_required  # # Protects routes r
 
 
 def home(request):
-    polls = Poll.objects.all()  # # Get all polls from database - available to all users
+    # Prefetch options to avoid N+1 queries in template
+    polls = Poll.objects.all().prefetch_related('options')  # # Get all polls and their options
     context = {
         'polls': polls  # # Pass polls to template for display
     }
     return render(request, "main/home.html", context)  # # Render home template with polls
 
-@login_required(login_url='login')  # # Requires authentication, redirects to login if not authenticated
+@login_required(login_url='login')
 def vote(request, poll_id):
-    poll = get_object_or_404(Poll, pk=poll_id)  # # Get poll or return 404 if not found
+    poll = get_object_or_404(Poll, pk=poll_id)
     user = request.user
+    options = list(Option.objects.filter(poll=poll).order_by('order', 'id')[:10])
 
-    # Check if the user has already voted on this poll
-    try:
-        previous_vote = Vote.objects.get(user=user, poll=poll)
-    except Vote.DoesNotExist:
-        previous_vote = None
+    # Auto-create dynamic options from legacy fields if none exist yet
+    if not options:
+        legacy = []
+        if poll.option_one:
+            legacy.append(poll.option_one)
+        if poll.option_two:
+            legacy.append(poll.option_two)
+        if poll.option_three:
+            legacy.append(poll.option_three)
+        for idx, text in enumerate(legacy):
+            Option.objects.create(poll=poll, text=text, order=idx, votes=getattr(poll, f'option_{['one','two','three'][idx]}_count'))
+        options = list(Option.objects.filter(poll=poll).order_by('order', 'id')[:10])
 
-    if request.method == 'POST':  # # Handle vote submission
-        selected_option = request.POST.get('poll_choice')  # # Get selected option from form
+    # If no dynamic options exist, show message guiding admin to add them
+    if not options:
+        messages.error(request, 'No options available for this poll. Please ask an admin to add options.')
+        return render(request, "main/vote.html", { 'poll': poll, 'options': [], 'previous_option_id': None })
 
-        if selected_option not in ('option1', 'option2', 'option3'):
-            return HttpResponse(400, 'Invalid form option')  # # Handle invalid submissions
+    previous_vote = Vote.objects.filter(user=user, poll=poll).select_related('option').first()
 
-        # If the user already voted, decrement previous choice count first
-        if previous_vote:
-            # If they selected the same option again, do nothing (no double-count)
-            if selected_option == previous_vote.choice:
+    if request.method == 'POST':
+        opt_id = request.POST.get('option')
+        if not opt_id:
+            messages.error(request, 'Please select an option before submitting.')
+            previous_option_id = previous_vote.option_id if previous_vote and previous_vote.option_id else None
+            return render(request, "main/vote.html", { 'poll': poll, 'options': options, 'previous_option_id': previous_option_id })
+        try:
+            selected = next(o for o in options if str(o.id) == str(opt_id))
+        except StopIteration:
+            messages.error(request, 'Invalid option selected.')
+            previous_option_id = previous_vote.option_id if previous_vote and previous_vote.option_id else None
+            return render(request, "main/vote.html", { 'poll': poll, 'options': options, 'previous_option_id': previous_option_id })
+
+        # Change vote handling: decrement old, increment new
+        from django.db.models import F
+        from django.db import transaction
+        with transaction.atomic():
+            if previous_vote and previous_vote.option_id == selected.id:
                 return redirect('results', poll_id=poll_id)
 
-            # decrement the old counter (guard against negative counts)
-            if previous_vote.choice == 'option1' and poll.option_one_count > 0:
-                poll.option_one_count -= 1
-            elif previous_vote.choice == 'option2' and poll.option_two_count > 0:
-                poll.option_two_count -= 1
-            elif previous_vote.choice == 'option3' and poll.option_three_count > 0:
-                poll.option_three_count -= 1
+            if previous_vote and previous_vote.option_id:
+                Option.objects.filter(pk=previous_vote.option_id).update(votes=F('votes') - 1)
+                previous_vote.option = selected
+                previous_vote.choice = None  # legacy clear
+                previous_vote.save(update_fields=['option', 'choice'])
+            else:
+                Vote.objects.create(user=user, poll=poll, option=selected)
 
-            # increment new counter
-            if selected_option == 'option1':
-                poll.option_one_count += 1
-            elif selected_option == 'option2':
-                poll.option_two_count += 1
-            elif selected_option == 'option3':
-                poll.option_three_count += 1
+            Option.objects.filter(pk=selected.id).update(votes=F('votes') + 1)
 
-            # update saved vote
-            previous_vote.choice = selected_option
-            previous_vote.save()
-            poll.save()
-            return redirect('results', poll_id=poll_id)
-
-        # No previous vote: create a vote record and increment the selected counter
-        if selected_option == 'option1':
-            poll.option_one_count += 1
-        elif selected_option == 'option2':
-            poll.option_two_count += 1
-        elif selected_option == 'option3':
-            poll.option_three_count += 1
-
-        poll.save()
-        Vote.objects.create(user=user, poll=poll, choice=selected_option)
         return redirect('results', poll_id=poll_id)
 
-    context = {
-        'poll': poll,
-        'previous_choice': previous_vote.choice if previous_vote else None,  # for pre-selecting radios
-    }
-    return render(request, "main/vote.html", context)
+    previous_option_id = previous_vote.option_id if previous_vote and previous_vote.option_id else None
+    return render(request, "main/vote.html", { 'poll': poll, 'options': options, 'previous_option_id': previous_option_id })
 
 def results(request, poll_id):
-    poll = get_object_or_404(Poll, pk=poll_id)  # # Get poll or 404
-    total = poll.total()  # # Calculate total votes for percentages
-    counts = {  # # Store raw vote counts
-        'one': poll.option_one_count,
-        'two': poll.option_two_count,
-        'three': poll.option_three_count,
-    }
-    if total > 0:  # # Calculate percentages if votes exist
-        percentages = {
-            'one': (counts['one'] / total) * 100,  # # Calculate percentage for option 1
-            'two': (counts['two'] / total) * 100,  # # Calculate percentage for option 2
-            'three': (counts['three'] / total) * 100,  # # Calculate percentage for option 3
-        }
-    else:  # # Handle case with no votes
-        percentages = {'one': 0, 'two': 0, 'three': 0}
+    from django.db.models import Sum
+    poll = get_object_or_404(Poll, pk=poll_id)
+    options = list(Option.objects.filter(poll=poll).order_by('order', 'id')[:10])
+    if not options:
+        # Same legacy bootstrap logic for direct navigation to results
+        legacy = []
+        if poll.option_one:
+            legacy.append(poll.option_one)
+        if poll.option_two:
+            legacy.append(poll.option_two)
+        if poll.option_three:
+            legacy.append(poll.option_three)
+        for idx, text in enumerate(legacy):
+            Option.objects.create(poll=poll, text=text, order=idx, votes=getattr(poll, f'option_{['one','two','three'][idx]}_count'))
+        options = list(Option.objects.filter(poll=poll).order_by('order', 'id')[:10])
+    total = Option.objects.filter(poll=poll).aggregate(total=Sum('votes'))['total'] or 0
+    items = []
+    for idx, opt in enumerate(options, start=1):
+        pct = (opt.votes / total * 100) if total else 0
+        items.append({
+            'index': idx,
+            'id': opt.id,
+            'text': opt.text,
+            'votes': opt.votes,
+            'percent': pct,
+        })
 
-    context = {
-        'poll': poll,
-        'total': total,
-        'counts': counts,
-        'percentages': percentages,
-    }
-    return render(request, "main/results.html", context)
+    return render(request, "main/results.html", { 'poll': poll, 'items': items, 'total': total })
 
 def login(request):
     if request.method == 'POST':  # # Handle login form submission

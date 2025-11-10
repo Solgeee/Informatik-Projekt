@@ -25,13 +25,15 @@ SECRET_KEY = 'django-insecure-14abu_!m$a#a6m)m6f8b)4m2na0b#9c&4_g-tm2+63=l!eoqav
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['informatik-projekt.onrender.com']
+ALLOWED_HOSTS = ['informatik-projekt.onrender.com', '127.0.0.1', 'localhost']
 
 # When deploying behind a proxy (Render) Django may reject the Origin header
 # sent by the browser for POST requests. Add the Render site URL to
 # CSRF_TRUSTED_ORIGINS so Django accepts the Origin header for CSRF checks.
 CSRF_TRUSTED_ORIGINS = [
-    'https://informatik-projekt.onrender.com'
+    'https://informatik-projekt.onrender.com',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000'
 ]
 
 

@@ -123,9 +123,15 @@
             <div class="poll-card">
                 <h2>{{ poll.question }}</h2>
                 <ul class="poll-options">
-                    <li>{{ poll.option_one }}</li>
-                    <li>{{ poll.option_two }}</li>
-                    <li>{{ poll.option_three }}</li>
+                    {% with poll.options.all as dyn_opts %}
+                        {% if dyn_opts %}
+                            {% for o in dyn_opts %}
+                                <li>{{ o.text }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li><em>No options yet.</em></li>
+                        {% endif %}
+                    {% endwith %}
                 </ul>
                 <div class="button-wrapper">
                     {% if user.is_authenticated %}

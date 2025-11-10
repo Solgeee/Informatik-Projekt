@@ -59,15 +59,19 @@
             color: white;  /* # White text on colored progress bars */
             font-weight: 700;
         }
-        .progress-one {
-            background: linear-gradient(90deg, #2c5282 0%, #2b6cb0 100%);  /* # Deep blue gradient for first option */
-        }
-        .progress-two {
-            background: linear-gradient(90deg, #c53030 0%, #e53e3e 100%);  /* # Red gradient for second option */
-        }
-        .progress-three {
-            background: linear-gradient(90deg, #2f855a 0%, #38a169 100%);  /* # Green gradient for third option */
-        }
+        /* Dynamic color palette (index based: 1..10)
+           1 Blue, 2 Red, 3 Green, 4 Yellow, 5 Purple, 6 Cyan, 7 Orange,
+           8 Teal, 9 Pink, 10 Gray */
+        .progress-1 {background:linear-gradient(90deg,#2c5282 0%,#2b6cb0 100%);}  /* Blue */
+        .progress-2 {background:linear-gradient(90deg,#c53030 0%,#e53e3e 100%);}  /* Red */
+        .progress-3 {background:linear-gradient(90deg,#2f855a 0%,#38a169 100%);}  /* Green */
+        .progress-4 {background:linear-gradient(90deg,#d69e2e 0%,#ecc94b 100%);}  /* Yellow */
+        .progress-5 {background:linear-gradient(90deg,#553c9a 0%,#6b46c1 100%);}  /* Purple */
+        .progress-6 {background:linear-gradient(90deg,#0987a0 0%,#00b5d8 100%);}  /* Cyan */
+        .progress-7 {background:linear-gradient(90deg,#c05621 0%,#dd6b20 100%);}  /* Orange */
+        .progress-8 {background:linear-gradient(90deg,#285e61 0%,#319795 100%);}  /* Teal */
+        .progress-9 {background:linear-gradient(90deg,#97266d 0%,#d53f8c 100%);}  /* Pink */
+        .progress-10{background:linear-gradient(90deg,#4a5568 0%,#718096 100%);}  /* Gray */
         .meta-row {
             display:flex;
             justify-content:space-between;
@@ -121,26 +125,14 @@
         </div>
 
         <div class="results-wrapper">
-            <div class="result-row" data-count="{{ counts.one }}" data-perc="{{ percentages.one|floatformat:2 }}">
-                <div class="option-label"><span>{{ poll.option_one }}</span><span class="value">{{ percentages.one|floatformat:1 }}%</span></div>
+            {% for item in items %}
+            <div class="result-row" data-count="{{ item.votes }}" data-perc="{{ item.percent }}">
+                <div class="option-label"><span>{{ item.text }}</span><span class="value">{{ item.percent|floatformat:1 }}%</span></div>
                 <div class="progress-bar">
-                    <div class="progress progress-one" style="width:{{ percentages.one }}%"></div>
+                    <div class="progress progress-{{ item.index }}" style="width:{{ item.percent }}%"></div>
                 </div>
             </div>
-
-            <div class="result-row" data-count="{{ counts.two }}" data-perc="{{ percentages.two|floatformat:2 }}">
-                <div class="option-label"><span>{{ poll.option_two }}</span><span class="value">{{ percentages.two|floatformat:1 }}%</span></div>
-                <div class="progress-bar">
-                    <div class="progress progress-two" style="width:{{ percentages.two }}%"></div>
-                </div>
-            </div>
-
-            <div class="result-row" data-count="{{ counts.three }}" data-perc="{{ percentages.three|floatformat:2 }}">
-                <div class="option-label"><span>{{ poll.option_three }}</span><span class="value">{{ percentages.three|floatformat:1 }}%</span></div>
-                <div class="progress-bar">
-                    <div class="progress progress-three" style="width:{{ percentages.three }}%"></div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
 
         <div class="nav-links">
