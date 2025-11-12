@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Restrictions</title>
+    {% include 'main/header.html' with header_style=True %}
+    <style>
+        body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        .container { max-width: 720px; margin: 60px auto; background: var(--card-bg); border-radius: 10px; box-shadow: 0 4px 16px var(--elev); padding: 24px; }
+        h1 { margin: 0 0 16px 0; }
+        p.note { color: var(--muted-text); margin-bottom: 20px; }
+        fieldset { border: 1px solid var(--border); border-radius: 8px; margin: 16px 0; padding: 16px; }
+        legend { padding: 0 8px; color: var(--muted-text); }
+        .option { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+        .actions { display: flex; gap: 8px; margin-top: 16px; }
+        .btn { padding: 8px 16px; border-radius: 8px; text-decoration: none; border: 1px solid var(--border); cursor: pointer; }
+        .btn-primary { background: var(--link-btn-bg); color: #fff; border: none; }
+        .btn-primary:hover { background: var(--link-btn-bg-hover); }
+        .btn-neutral { background: var(--button-bg); color: var(--text); }
+        .btn-neutral:hover { background: var(--button-bg-hover); }
+        .summary { background: var(--option-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 8px 0 20px 0; }
+        .summary strong { display: inline-block; margin-right: 8px; }
+        .empty { color: var(--muted-text); font-style: italic; }
+        .messages { margin: 8px 0 12px; }
+        .msg { color: var(--text); }
+        .msg.error { color: var(--danger); }
+        .subtle { color: var(--muted-text); font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    {% include 'main/header.html' with header_content=True %}
+    <div class="container">
+        <h1>Restrictions</h1>
+        <p class="note">Select one option in each category. This is required to participate in polls.</p>
+
+        <div class="messages">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="msg {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        {% if selected_groups_summary %}
+            <div class="summary subtle">
+                <strong>Current:</strong>
+                {{ selected_groups_summary|join:', ' }}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {% for category in categories %}
+                <fieldset>
+                    <legend>{{ category.name }}</legend>
+                    {% for option in category.options.all %}
+                        <label class="option">
+                            <input type="radio" name="cat_{{ category.id }}" value="{{ option.id }}" {% if option.id in selected_option_ids %}checked{% endif %}>
+                            <span>{{ option.name }}</span>
+                        </label>
+                    {% empty %}
+                        <div class="empty">No options available for this category.</div>
+                    {% endfor %}
+                </fieldset>
+            {% empty %}
+                <div class="empty">No categories available.</div>
+            {% endfor %}
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a class="btn btn-neutral" href="{% url 'home' %}">Back to polls</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

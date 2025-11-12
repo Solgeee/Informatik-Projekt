@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from .models import Poll, Option, Vote
+from .models import AudienceCategory, AudienceOption, UserAudienceOption
 
 
 class ResultsBootstrapTest(TestCase):
@@ -92,5 +93,64 @@ class HomeVisibilityTest(TestCase):
 		resp = self.client.post(url, data={})
 		self.assertEqual(resp.status_code, 200)
 		self.assertContains(resp, 'Please select an option', status_code=200)
+
+class RestrictionEnforcementTest(TestCase):
+	def setUp(self):
+		self.User = get_user_model()
+		# Create categories and options
+		cat1 = AudienceCategory.objects.create(name='State')
+		cat2 = AudienceCategory.objects.create(name='City')
+		self.o1 = AudienceOption.objects.create(category=cat1, name='CA')
+		self.o2 = AudienceOption.objects.create(category=cat2, name='SF')
+		self.poll = Poll.objects.create(question='Q?', is_visible=True)
+
+	def test_user_cannot_vote_without_restrictions(self):
+		user = self.User.objects.create_user(username='u3', email='u3@example.com', password='pw')
+		# Add poll option to vote on
+		opt = Option.objects.create(poll=self.poll, text='A', order=0)
+		self.client.login(username='u3', password='pw')
+		vote_url = reverse('vote', args=[self.poll.id])
+		resp = self.client.get(vote_url)
+		# Should redirect to restrictions page
+		self.assertEqual(resp.status_code, 302)
+		self.assertIn('restrictions', resp['Location'])
+
+	def test_user_can_vote_after_restrictions(self):
+		user = self.User.objects.create_user(username='u4', email='u4@example.com', password='pw')
+		Option.objects.create(poll=self.poll, text='A', order=0)
+		self.client.login(username='u4', password='pw')
+		# Assign restrictions
+		UserAudienceOption.objects.create(user=user, option=self.o1)
+		UserAudienceOption.objects.create(user=user, option=self.o2)
+		vote_url = reverse('vote', args=[self.poll.id])
+		resp = self.client.get(vote_url)
+		self.assertEqual(resp.status_code, 200)
+
+	def test_incomplete_restrictions_block_vote(self):
+		user = self.User.objects.create_user(username='u5', email='u5@example.com', password='pw')
+		Option.objects.create(poll=self.poll, text='A', order=0)
+		self.client.login(username='u5', password='pw')
+		# Assign only one category restriction (incomplete)
+		UserAudienceOption.objects.create(user=user, option=self.o1)
+		vote_url = reverse('vote', args=[self.poll.id])
+		resp = self.client.get(vote_url)
+		self.assertEqual(resp.status_code, 302)
+		self.assertIn('restrictions', resp['Location'])
+
+	def test_excess_restrictions_block_vote(self):
+		user = self.User.objects.create_user(username='u6', email='u6@example.com', password='pw')
+		Option.objects.create(poll=self.poll, text='A', order=0)
+		self.client.login(username='u6', password='pw')
+		# Add two selections for same category (simulate corruption)
+		UserAudienceOption.objects.create(user=user, option=self.o1)
+		# create another option in first category
+		alt = AudienceOption.objects.create(category=self.o1.category, name='NV')
+		UserAudienceOption.objects.create(user=user, option=alt)
+		# Also add second category restriction to satisfy count but with duplication
+		UserAudienceOption.objects.create(user=user, option=self.o2)
+		vote_url = reverse('vote', args=[self.poll.id])
+		resp = self.client.get(vote_url)
+		self.assertEqual(resp.status_code, 302)
+		self.assertIn('restrictions', resp['Location'])
 
 # Create your tests here.

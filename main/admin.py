@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django import forms
-from .models import Poll, Option, Vote
+from .models import Poll, Option, Vote, AudienceCategory, AudienceOption
 
 class OptionInline(admin.TabularInline):
 	model = Option
@@ -15,7 +15,8 @@ class OptionInline(admin.TabularInline):
 class PollAdmin(admin.ModelAdmin):
 	list_display = ('id', 'question', 'is_visible')
 	list_editable = ('is_visible',)
-	list_filter = ('is_visible',)
+	list_filter = ('is_visible', 'groups',)
+	filter_horizontal = ('groups',)
 	exclude = (
 		'option_one', 'option_two', 'option_three',
 		'option_one_count', 'option_two_count', 'option_three_count'
@@ -31,6 +32,17 @@ class OptionAdmin(admin.ModelAdmin):
 class VoteAdmin(admin.ModelAdmin):
 	list_display = ('id', 'user', 'poll', 'option', 'created')
 	list_filter = ('poll', 'option')
+@admin.register(AudienceCategory)
+class AudienceCategoryAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name')
+	search_fields = ('name',)
+
+
+@admin.register(AudienceOption)
+class AudienceOptionAdmin(admin.ModelAdmin):
+	list_display = ('id', 'category', 'name')
+	list_filter = ('category',)
+	search_fields = ('name',)
 
 
 class CustomUserCreationForm(forms.ModelForm):

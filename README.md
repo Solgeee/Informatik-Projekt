@@ -10,6 +10,8 @@ USEFUL COPY'S:
 
 * TO RUN SERVER : python manage.py runserver
 
+* Global website link: https://informatik-projekt.onrender.com/main/
+
 * Sending mails on Django: https://docs.djangoproject.com/en/5.2/topics/email/ 
 
 * Django Documentation: https://docs.djangoproject.com/en/5.2/

@@ -22,7 +22,7 @@
     {% include 'main/header.html' with header_content=True header_overlay=True %}
     <div class="auth-page">
     <div class="container">
-        <h1>Create your account</h1>
+    <h1>Create your account</h1>
         <div class="subheader-slot">
             <div class="info">Name: {{ request.session.reg_first_name }} {{ request.session.reg_last_name }}</div>
         </div>
@@ -33,7 +33,7 @@
                 {% endfor %}
             {% endif %}
         </div>
-        <form method="post" action="{% url 'register_email' %}">
+    <form method="post" action="{% url 'register_email' %}">
             {% csrf_token %}
             <div class="form-group">
                 <label for="email">Email</label>
@@ -47,7 +47,7 @@
                 <label for="password">Password</label>
                 <input type="password" name="password" id="password" required>
             </div>
-            <button type="submit" class="btn">Register</button>
+            <button type="submit" class="btn">Continue</button>
         </form>
     </div>
     </div>

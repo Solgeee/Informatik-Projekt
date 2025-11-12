@@ -11,5 +11,9 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
     path("register/name/", views.register_name, name="register_name"),
+    # Old groups route kept for backward compatibility -> now restrictions
+    path("register/groups/", views.register_restrictions, name="register_groups"),
+    path("register/restrictions/", views.register_restrictions, name="register_restrictions"),
+    path("restrictions/", views.register_restrictions, name="restrictions"),
     path("register/email/", views.register_email, name="register_email"),
 ]

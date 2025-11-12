@@ -113,12 +113,56 @@
             text-align: center;
             margin-top: 16px;
         }
+        .info-toggle {
+            width: 42px; height: 42px; border-radius: 10px; background: var(--button-bg); color: var(--text); border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.18); cursor: pointer; font-size: 20px; line-height: 1; display:inline-flex; align-items:center; justify-content:center; transition: background .2s, box-shadow .2s; }
+        .info-toggle:hover { background: var(--button-bg-hover); box-shadow: 0 3px 8px rgba(0,0,0,0.22); }
+        .restriction-modal { position: fixed; top: 0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,.28); z-index:1500; }
+    .restriction-modal[hidden] { display: none !important; }
+    .restriction-modal-content { background: var(--card-bg); color: var(--text); width: 420px; max-width:90vw; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.20); padding: 20px 24px; border:1px solid var(--border); }
+        .restriction-modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+        .restriction-modal-header h2 { margin:0; font-size:1.2em; }
+        .close-btn { background: var(--button-bg); border:1px solid var(--border); color: var(--text); width:32px; height:32px; font-size:18px; border-radius:8px; cursor:pointer; }
+        .close-btn:hover { background: var(--button-bg-hover); }
+        .restriction-list { list-style:none; margin:0; padding:0; }
+        .restriction-list li { background: var(--option-bg); padding:8px 12px; border-radius:6px; margin:6px 0; border:1px solid var(--border); font-size:.95em; }
+        .restriction-empty { color: var(--muted-text); font-style:italic; }
     </style>
 </head>
 <body>
     {% include 'main/header.html' with header_content=True %}
     <div class="container">
         <h1>Available Polls</h1>
+        <div class="restrictions-info-wrapper" style="margin: 12px 0 8px 0; text-align:center;">
+            <button id="restrictionsInfoBtn" class="info-toggle" type="button" title="Show restrictions" aria-haspopup="dialog" aria-controls="restrictionsModal" aria-expanded="false">ℹ</button>
+        </div>
+        <div id="restrictionsModal" class="restriction-modal" role="dialog" aria-modal="true" aria-labelledby="restrictionsTitle" hidden>
+            <div class="restriction-modal-content">
+                <div class="restriction-modal-header">
+                    <h2 id="restrictionsTitle">Your Restrictions</h2>
+                    <button type="button" class="close-btn" id="restrictionsCloseBtn" aria-label="Close">×</button>
+                </div>
+                <div class="restriction-modal-body">
+                    {% if not user.is_authenticated %}
+                        <p class="restriction-empty">Log in to see restrictions.</p>
+                    {% elif selected_groups_summary %}
+                        <ul class="restriction-list">
+                            {% for item in selected_groups_summary %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <ul class="restriction-list">
+                            {% for cat in restriction_categories %}
+                                <li>{{ cat.name }}: <em>not selected</em></li>
+                            {% empty %}
+                                <li><em>No restriction categories defined.</em></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="restriction-empty" style="margin-top:8px;">Restrictions must be set during registration before voting.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         {% for poll in polls %}
             <div class="poll-card">
                 <h2>{{ poll.question }}</h2>
@@ -143,5 +187,27 @@
             </div>
         {% endfor %}
     </div>
+    <script>
+    (function(){
+        const btn = document.getElementById('restrictionsInfoBtn');
+        const overlay = document.getElementById('restrictionsModal');
+        const closeBtn = document.getElementById('restrictionsCloseBtn');
+        const content = overlay ? overlay.querySelector('.restriction-modal-content') : null;
+        if(!btn || !overlay || !content) return;
+        const firstFocusable = () => content.querySelector('button.close-btn');
+        const open = () => {
+            overlay.hidden = false; btn.setAttribute('aria-expanded','true');
+            const f = firstFocusable(); if(f) { try { f.focus(); } catch(_){} }
+        };
+        const close = () => { overlay.hidden = true; btn.setAttribute('aria-expanded','false'); btn.focus(); };
+        btn.addEventListener('click', function(){ overlay.hidden ? open() : close(); });
+        closeBtn && closeBtn.addEventListener('click', close);
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !overlay.hidden){ close(); }});
+        // Close only if clicking direct overlay (outside content)
+        overlay.addEventListener('click', function(e){ if(e.target === overlay){ close(); }});
+        // Prevent propagation inside content
+        content.addEventListener('click', function(e){ e.stopPropagation(); });
+    })();
+    </script>
 </body>
 </html>
