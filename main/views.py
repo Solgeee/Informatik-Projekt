@@ -180,3 +180,6 @@ def register_email(request):
 def logout_view(request):
     logout(request)  # # Clear user session
     return redirect('home')  # # Redirect to home page after logout
+
+def welcome(request):
+    return render(request, 'main/welcome.html')  # # Render welcome page
