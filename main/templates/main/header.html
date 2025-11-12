@@ -54,13 +54,15 @@
     <a href="{% url 'home' %}" class="header-title">Poll System</a>
     <div class="auth-section">
         {% if user.is_authenticated %}
-            <span class="auth-status">Logged in as {{ user.username }}</span>
+            <span class="auth-status">Logged in as {% if user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</span>
             <a href="{% url 'logout' %}" class="auth-button">Logout</a>
         {% else %}
             <a href="{% url 'login' %}" class="auth-button">Login</a>
-            <a href="{% url 'register' %}" class="auth-button">Register</a>
+            <a href="{% url 'register_name' %}" class="auth-button">Register</a>
         {% endif %}
     </div>
 </div>
+{% if not header_overlay %}
 <div class="header-spacer"></div>
+{% endif %}
 {% endif %}

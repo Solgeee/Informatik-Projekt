@@ -109,9 +109,17 @@ def results(request, poll_id):
 
 def login(request):
     if request.method == 'POST':  # # Handle login form submission
-        username = request.POST['username']  # # Get credentials from form
+        username = request.POST['username']  # # Get credentials from form (email or username)
         password = request.POST['password']
+        # Try standard username login first
         user = authenticate(request, username=username, password=password)  # # Verify user credentials
+        if user is None:
+            # Try email lookup then authenticate via the found username
+            try:
+                lookup = User.objects.get(email__iexact=username)
+                user = authenticate(request, username=lookup.username, password=password)
+            except User.DoesNotExist:
+                user = None
         if user is not None:  # # If credentials are valid
             auth_login(request, user)  # # Create user session
             return redirect('home')  # # Redirect to home page
@@ -120,16 +128,54 @@ def login(request):
     return render(request, 'main/login.html')
 
 def register(request):
-    if request.method == 'POST':  # # Handle registration form
-        username = request.POST['username']  # # Get form data
-        password = request.POST['password']
-        if User.objects.filter(username=username).exists():  # # Check if username is taken
-            messages.error(request, 'Username already exists.')  # # Show error if username exists
+    # Keep legacy direct registration for backward compatibility; redirect to first step.
+    return redirect('register_name')
+
+def register_name(request):
+    if request.method == 'POST':
+        first = request.POST.get('first_name', '').strip()
+        last = request.POST.get('last_name', '').strip()
+        if not first or not last:
+            messages.error(request, 'Please enter both first and last name.')
         else:
-            User.objects.create_user(username=username, password=password)  # # Create new user
-            messages.success(request, 'Registration successful. Please log in.')  # # Show success message
-            return redirect('login')  # # Redirect to login page
-    return render(request, 'main/register.html')
+            request.session['reg_first_name'] = first
+            request.session['reg_last_name'] = last
+            return redirect('register_email')
+    return render(request, 'main/register_name.html')
+
+def register_email(request):
+    if 'reg_first_name' not in request.session or 'reg_last_name' not in request.session:
+        messages.error(request, 'Please start registration with your name.')
+        return redirect('register_name')
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip()  # optional custom username
+        password = request.POST.get('password', '').strip()
+
+        # Basic email format validation
+        if '@' not in email or '.' not in email.split('@')[-1]:
+            messages.error(request, 'Please provide a valid email address.')
+            return render(request, 'main/register_email.html')
+        if not username:
+            username = email.split('@')[0]
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists. Choose another.')
+            return render(request, 'main/register_email.html')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered. Use another or login.')
+            return render(request, 'main/register_email.html')
+        if len(password) < 4:
+            messages.error(request, 'Password must be at least 4 characters.')
+            return render(request, 'main/register_email.html')
+
+        first = request.session.pop('reg_first_name')
+        last = request.session.pop('reg_last_name')
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
+        messages.success(request, 'Registration successful. Please log in.')
+        return redirect('login')
+
+    return render(request, 'main/register_email.html')
 
 def logout_view(request):
     logout(request)  # # Clear user session
