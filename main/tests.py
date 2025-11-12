@@ -67,6 +67,22 @@ class VoteFlowTest(TestCase):
 		self.assertEqual(x.votes, 0)
 		self.assertEqual(y.votes, 1)
 
+
+class HomeVisibilityTest(TestCase):
+	def setUp(self):
+		self.User = get_user_model()
+
+	def test_home_shows_only_visible_polls(self):
+		p1 = Poll.objects.create(question="Visible Poll", is_visible=True)
+		p2 = Poll.objects.create(question="Hidden Poll", is_visible=False)
+
+		url = reverse('home')
+		resp = self.client.get(url)
+		self.assertEqual(resp.status_code, 200)
+		html = resp.content.decode('utf-8')
+		self.assertIn("Visible Poll", html)
+		self.assertNotIn("Hidden Poll", html)
+
 	def test_missing_option_shows_error(self):
 		user = self.User.objects.create_user(username='u2', email='u2@example.com', password='pw')
 		p = Poll.objects.create(question="Pick", option_one="X")

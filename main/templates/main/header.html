@@ -1,8 +1,76 @@
 {% comment %}Header Component{% endcomment %}
 {% if header_style %}
 <style>
+    /* Theme variables: light by default (colorful), dark is grayscale */
+    :root {
+        --bg: #f4f6fa;
+        --text: #2c3e50;
+        --muted-text: #7f8c8d;
+        --card-bg: #ffffff;
+        --option-bg: #f8f9fa; /* slightly lighter than card */
+        --input-bg: #ffffff;
+        --elev: rgba(0,0,0,0.08);
+        --border: #dfe6ea;
+        --button-bg: #ecf0f1;
+        --button-bg-hover: #dfe6ea;
+        --link-btn-bg: #3498db; /* primary accent (light mode) */
+        --link-btn-bg-hover: #217dbb;
+        --danger: #e74c3c;
+        --progress-empty: rgba(0,0,0,0.06);
+    }
+    :root[data-theme="dark"] { /* grayscale theme */
+        --bg: #0f1115;            /* very dark background */
+        --text: #e5e7eb;          /* near white */
+        --muted-text: #c7cbd1;
+        --card-bg: #1a1f29;       /* dark card */
+        --option-bg: #252b36;     /* a tad lighter than card */
+        --input-bg: #0f141a;      /* darker input for contrast */
+        --elev: rgba(0,0,0,0.45);
+        --border: #2b3240;
+        --button-bg: #242a35;     /* neutral gray buttons */
+        --button-bg-hover: #2d3542;
+        --link-btn-bg: #3b3f46;   /* grayscale primary */
+        --link-btn-bg-hover: #4a4f58;
+        --danger: #ef4444;
+        --progress-empty: rgba(255,255,255,0.08);
+    }
+
+    /* Global overrides to harmonize pages (use !important to beat inline page styles) */
+    body { background: var(--bg) !important; color: var(--text) !important; }
+    h1, h2, h3, .poll-question, .option-label, .auth-status { color: var(--text) !important; }
+    .container, .poll-card, .results-wrapper, .result-row, .progress-bar { 
+        background: var(--card-bg) !important; 
+        color: var(--text) !important;
+    }
+    .vote-options { background: var(--card-bg) !important; }
+    .vote-options label { background: var(--option-bg) !important; }
+    .poll-options li { background: var(--option-bg) !important; }
+    input[type="text"], input[type="password"], input[type="email"], textarea, select {
+        background: var(--input-bg) !important; color: var(--text) !important; border: 1px solid var(--border) !important;
+    }
+    .progress-bar { background: var(--progress-empty) !important; }
+    /* Functional buttons default: links and toggles are primary; auth .btns are neutral */
+    .nav-links a, .toggle {
+        background: var(--link-btn-bg) !important; color: #fff !important; border: none !important;
+    }
+    .nav-links a:hover, .toggle:hover { background: var(--link-btn-bg-hover) !important; }
+    .auth-button { background: var(--button-bg) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+    .auth-button:hover { background: var(--button-bg-hover) !important; }
+
+    /* Vote button stays neutral/gray in light mode too */
+    a.vote-button { background: var(--button-bg) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+    a.vote-button:hover { background: var(--button-bg-hover) !important; }
+
+    /* Auth forms/action buttons (.btn) use neutral styling (gray in light, grayscale in dark) */
+    .btn { background: var(--button-bg) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+    .btn:hover { background: var(--button-bg-hover) !important; }
+
+    /* Dark mode specific: make option text clearly readable */
+    :root[data-theme="dark"] .vote-options label { color: #ffffff !important; }
+    :root[data-theme="dark"] .poll-options li { color: #ffffff !important; }
+
     .header {
-        background: white;
+        background: var(--card-bg);
         padding: 12px 24px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         position: fixed;
@@ -15,7 +83,7 @@
         align-items: center;
     }
     .header-title {
-        color: #2c3e50;
+        color: var(--text);
         font-weight: 600;
         text-decoration: none;
     }
@@ -25,27 +93,60 @@
         gap: 12px;
     }
     .auth-status {
-        color: #7f8c8d;
+        color: var(--muted-text);
         font-size: 0.9em;
     }
     .auth-button {
         padding: 6px 12px;
-        background: #ecf0f1;
-        color: #34495e;
+        background: var(--button-bg);
+        color: var(--text);
         text-decoration: none;
         border-radius: 16px;
         font-weight: 500;
         font-size: 0.9em;
-        border: 1px solid #dfe6ea;
+        border: 1px solid var(--border);
         transition: all 0.2s ease;
     }
     .auth-button:hover {
-        background: #dfe6ea;
+        background: var(--button-bg-hover);
         transform: translateY(-1px);
     }
     .header-spacer {
         height: 60px;
     }
+
+    /* Floating theme toggle button (rounded square) */
+    .theme-toggle {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--button-bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px var(--elev);
+        user-select: none;
+        z-index: 1100;
+    }
+    .theme-toggle:hover { background: var(--button-bg-hover); }
+
+    /* Grayscale progress bars in dark mode for results */
+    :root[data-theme="dark"] .progress-1 { background: linear-gradient(90deg,#9ca3af 0%,#aeb4be 100%) !important; }
+    :root[data-theme="dark"] .progress-2 { background: linear-gradient(90deg,#8b929e 0%,#9aa1ac 100%) !important; }
+    :root[data-theme="dark"] .progress-3 { background: linear-gradient(90deg,#7a828f 0%,#8a93a1 100%) !important; }
+    :root[data-theme="dark"] .progress-4 { background: linear-gradient(90deg,#6b7280 0%,#7a8290 100%) !important; }
+    :root[data-theme="dark"] .progress-5 { background: linear-gradient(90deg,#5b6270 0%,#6b7484 100%) !important; }
+    :root[data-theme="dark"] .progress-6 { background: linear-gradient(90deg,#4b525f 0%,#5b6474 100%) !important; }
+    :root[data-theme="dark"] .progress-7 { background: linear-gradient(90deg,#444b57 0%,#545e71 100%) !important; }
+    :root[data-theme="dark"] .progress-8 { background: linear-gradient(90deg,#3d444f 0%,#4e596b 100%) !important; }
+    :root[data-theme="dark"] .progress-9 { background: linear-gradient(90deg,#363d47 0%,#475167 100%) !important; }
+    :root[data-theme="dark"] .progress-10{ background: linear-gradient(90deg,#2f3540 0%,#424b61 100%) !important; }
 </style>
 {% endif %}
 
@@ -65,4 +166,33 @@
 {% if not header_overlay %}
 <div class="header-spacer"></div>
 {% endif %}
+
+<!-- Floating dark mode toggle -->
+<div class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">○</div>
+<script>
+    (function(){
+        try {
+            const key = 'theme';
+            const root = document.documentElement;
+            const saved = localStorage.getItem(key);
+            if (saved === 'dark') {
+                root.setAttribute('data-theme','dark');
+            }
+            const btn = document.getElementById('themeToggle');
+            const isDark = () => root.getAttribute('data-theme') === 'dark';
+            const updateIcon = () => { btn.textContent = isDark() ? '\u263E' /* ☾ */ : '\u263C' /* ☼ */; };
+            updateIcon();
+            btn.addEventListener('click', function(){
+                if (isDark()) {
+                    root.removeAttribute('data-theme');
+                    localStorage.setItem(key, 'light');
+                } else {
+                    root.setAttribute('data-theme','dark');
+                    localStorage.setItem(key, 'dark');
+                }
+                updateIcon();
+            });
+        } catch (e) { /* no-op */ }
+    })();
+    </script>
 {% endif %}

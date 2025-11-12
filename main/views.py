@@ -9,8 +9,8 @@ from django.contrib.auth.decorators import login_required  # # Protects routes r
 
 
 def home(request):
-    # Prefetch options to avoid N+1 queries in template
-    polls = Poll.objects.all().prefetch_related('options')  # # Get all polls and their options
+    # Prefetch options to avoid N+1 queries in template; show only visible polls
+    polls = Poll.objects.filter(is_visible=True).prefetch_related('options')
     context = {
         'polls': polls  # # Pass polls to template for display
     }

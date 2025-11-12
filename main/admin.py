@@ -13,7 +13,9 @@ class OptionInline(admin.TabularInline):
 
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
-	list_display = ('id', 'question')
+	list_display = ('id', 'question', 'is_visible')
+	list_editable = ('is_visible',)
+	list_filter = ('is_visible',)
 	exclude = (
 		'option_one', 'option_two', 'option_three',
 		'option_one_count', 'option_two_count', 'option_three_count'

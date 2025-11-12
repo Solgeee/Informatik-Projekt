@@ -11,6 +11,7 @@ class Poll(models.Model):
     option_one_count = models.IntegerField(default=0)
     option_two_count = models.IntegerField(default=0)
     option_three_count = models.IntegerField(default=0)
+    is_visible = models.BooleanField(default=True, help_text="Controls whether this poll appears on the home page list.")
 
     def total(self):
         return self.option_one_count + self.option_two_count + self.option_three_count
