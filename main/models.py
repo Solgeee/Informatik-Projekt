@@ -95,3 +95,58 @@ class UserAudienceOption(models.Model):
 
     def __str__(self):
         return f"{self.user} -> {self.option}"
+
+
+class BerlinPostalCode(models.Model):
+    """Mapping of Berlin postal code to its Bezirk (district)."""
+    code = models.CharField(max_length=10, unique=True)
+    # The Bezirk is modeled as an AudienceOption under the category "Berlin Bezirk"
+    bezirk = models.ForeignKey(AudienceOption, on_delete=models.CASCADE, related_name='postal_codes')
+
+    class Meta:
+        verbose_name = "Berlin postal code"
+        verbose_name_plural = "Berlin postal codes"
+
+    def __str__(self):
+        return f"{self.code} -> {self.bezirk.name}"
+
+
+class UserProfile(models.Model):
+    """Extension of the built-in User storing the postal code used for automatic restriction assignment."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    postal_code = models.CharField(max_length=10, blank=True, null=True)
+
+    def __str__(self):
+        return f"Profile({self.user.username}) postal={self.postal_code or '-'}"
+
+    class Meta:
+        verbose_name = "User profile"
+        verbose_name_plural = "User profiles"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def ensure_user_profile(sender, instance, created, **kwargs):
+    """Create a profile automatically when a new user is created."""
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
+
+@receiver(post_save, sender=UserProfile)
+def sync_postal_restriction(sender, instance, **kwargs):
+    """Whenever a profile's postal code changes, (re)assign the Berlin Bezirk restriction if applicable."""
+    code = (instance.postal_code or '').strip()
+    if not code:
+        return
+    mapping = BerlinPostalCode.objects.select_related('bezirk__category').filter(code=code).first()
+    if not mapping:
+        return
+    bezirk_option = mapping.bezirk
+    # Guarantee category integrity
+    if bezirk_option.category.name != 'Berlin Bezirk':
+        cat, _ = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
+        if bezirk_option.category_id != cat.id:
+            bezirk_option, _ = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
+    # Replace any existing selection for this category
+    UserAudienceOption.objects.filter(user=instance.user, option__category=bezirk_option.category).delete()
+    UserAudienceOption.objects.get_or_create(user=instance.user, option=bezirk_option)

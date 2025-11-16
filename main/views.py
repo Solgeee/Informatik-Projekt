@@ -1,11 +1,14 @@
 # Core application imports and setup
 from django.http import HttpResponse  # # For returning HTTP responses
 from django.shortcuts import render, get_object_or_404, redirect  # # Core view utilities
-from .models import Poll, Vote, Option, AudienceCategory, AudienceOption, UserAudienceOption  # # Poll with dynamic Options and per-user Vote
+from .models import Poll, Vote, Option, AudienceCategory, AudienceOption, UserAudienceOption, BerlinPostalCode, UserProfile  # # Poll with dynamic Options and per-user Vote
 from django.contrib.auth import authenticate, login as auth_login, logout  # # Authentication handlers
 from django.contrib.auth.models import User  # # User model for registration
 from django.contrib import messages  # # For flash messages
 from django.contrib.auth.decorators import login_required  # # Protects routes requiring auth
+import re
+from django.utils.translation import gettext as _
+from django.utils import translation
 
 
 def _user_restriction_summary(user):
@@ -19,21 +22,51 @@ def _user_restriction_summary(user):
     return ids, summary
 
 
+def _required_category_ids():
+    """Categories that are actually used to restrict polls (appear in Poll.groups)."""
+    return set(AudienceCategory.objects.filter(options__polls__isnull=False).distinct().values_list('id', flat=True))
+
+
 def _user_has_full_restrictions(user):
-    """True if user selected exactly one option per category."""
-    total_cats = AudienceCategory.objects.count()
-    if total_cats == 0:
-        return True  # nothing to choose
-    # Count distinct categories user has options for
+    """True if user selected exactly one option for each required category (those used by polls)."""
+    required = _required_category_ids()
+    if not required:
+        return True
     from django.db.models import Count
-    agg = (UserAudienceOption.objects
-           .filter(user=user)
-           .values('option__category')
-           .annotate(c=Count('id')))
-    # Must be exactly one per category
-    if len(agg) != total_cats:
+    rows = (UserAudienceOption.objects
+            .filter(user=user, option__category_id__in=required)
+            .values('option__category')
+            .annotate(c=Count('id')))
+    user_cats = {r['option__category'] for r in rows}
+    if user_cats != required:
         return False
-    return all(row['c'] == 1 for row in agg)
+    return all(r['c'] == 1 for r in rows)
+
+
+def _assign_restrictions_from_postal(user, postal_code: str):
+    """Assign the Berlin Bezirk restriction based on a postal code if mapped.
+
+    Ensures AudienceCategory 'Berlin Bezirk' exists and contains the matching Bezirk option.
+    """
+    code = re.sub(r'\D', '', (postal_code or ''))
+    if not code:
+        return False
+    mapping = BerlinPostalCode.objects.select_related('bezirk__category').filter(code=code).first()
+    if not mapping:
+        return False
+    bezirk_option = mapping.bezirk
+    # Ensure it's under the correct category name
+    if bezirk_option.category.name != 'Berlin Bezirk':
+        # If data inconsistency, attempt to move or recreate under correct category
+        cat, _ = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
+        if bezirk_option.category_id != cat.id:
+            # Create/get proper option under Berlin Bezirk
+            bezirk_option, _ = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
+    # Upsert user's selection for this category
+    from django.db.models import Q
+    UserAudienceOption.objects.filter(user=user, option__category=bezirk_option.category).delete()
+    UserAudienceOption.objects.create(user=user, option=bezirk_option)
+    return True
 
 
 def home(request):
@@ -71,7 +104,7 @@ def vote(request, poll_id):
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(next=f"/main/vote/{poll_id}/")
     if not _user_has_full_restrictions(user):
-        messages.info(request, 'Please set your restrictions before voting.')
+        messages.info(request, _('Please set your restrictions before voting.'))
         return redirect('restrictions')
     options = list(Option.objects.filter(poll=poll).order_by('order', 'id')[:10])
 
@@ -90,7 +123,7 @@ def vote(request, poll_id):
 
     # If no dynamic options exist, show message guiding admin to add them
     if not options:
-        messages.error(request, 'No options available for this poll. Please ask an admin to add options.')
+        messages.error(request, _('No options available for this poll. Please ask an admin to add options.'))
         return render(request, "main/vote.html", { 'poll': poll, 'options': [], 'previous_option_id': None })
 
     previous_vote = Vote.objects.filter(user=user, poll=poll).select_related('option').first()
@@ -98,13 +131,13 @@ def vote(request, poll_id):
     if request.method == 'POST':
         opt_id = request.POST.get('option')
         if not opt_id:
-            messages.error(request, 'Please select an option before submitting.')
+            messages.error(request, _('Please select an option before submitting.'))
             previous_option_id = previous_vote.option_id if previous_vote and previous_vote.option_id else None
             return render(request, "main/vote.html", { 'poll': poll, 'options': options, 'previous_option_id': previous_option_id })
         try:
             selected = next(o for o in options if str(o.id) == str(opt_id))
         except StopIteration:
-            messages.error(request, 'Invalid option selected.')
+            messages.error(request, _('Invalid option selected.'))
             previous_option_id = previous_vote.option_id if previous_vote and previous_vote.option_id else None
             return render(request, "main/vote.html", { 'poll': poll, 'options': options, 'previous_option_id': previous_option_id })
 
@@ -177,7 +210,7 @@ def login(request):
             auth_login(request, user)  # # Create user session
             return redirect('home')  # # Redirect to home page
         else:
-            messages.error(request, 'Invalid username or password.')  # # Show error for invalid login
+            messages.error(request, _('Invalid username or password.'))  # # Show error for invalid login
     return render(request, 'main/login.html')
 
 def register(request):
@@ -189,7 +222,7 @@ def register_name(request):
         first = request.POST.get('first_name', '').strip()
         last = request.POST.get('last_name', '').strip()
         if not first or not last:
-            messages.error(request, 'Please enter both first and last name.')
+            messages.error(request, _('Please enter both first and last name.'))
         else:
             request.session['reg_first_name'] = first
             request.session['reg_last_name'] = last
@@ -198,35 +231,51 @@ def register_name(request):
 
 def register_email(request):
     if 'reg_first_name' not in request.session or 'reg_last_name' not in request.session:
-        messages.error(request, 'Please start registration with your name.')
+        messages.error(request, _('Please start registration with your name.'))
         return redirect('register_name')
 
     if request.method == 'POST':
         email = request.POST.get('email', '').strip()
         username = request.POST.get('username', '').strip()  # optional custom username
         password = request.POST.get('password', '').strip()
+        postal = request.POST.get('postal_code', '').strip()
 
         # Basic email format validation
         if '@' not in email or '.' not in email.split('@')[-1]:
-            messages.error(request, 'Please provide a valid email address.')
+            messages.error(request, _('Please provide a valid email address.'))
             return render(request, 'main/register_email.html')
         if not username:
             username = email.split('@')[0]
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists. Choose another.')
+            messages.error(request, _('Username already exists. Choose another.'))
             return render(request, 'main/register_email.html')
         if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered. Use another or login.')
+            messages.error(request, _('Email already registered. Use another or login.'))
             return render(request, 'main/register_email.html')
         if len(password) < 4:
-            messages.error(request, 'Password must be at least 4 characters.')
+            messages.error(request, _('Password must be at least 4 characters.'))
             return render(request, 'main/register_email.html')
-        # Store details in session; complete user creation after restrictions are collected
-        request.session['reg_email'] = email
-        request.session['reg_username'] = username
-        request.session['reg_password'] = password
-        messages.info(request, 'Now choose your restrictions to complete registration.')
-        return redirect('register_restrictions')
+        # Create the user immediately and assign postal-based restrictions
+        first = request.session.pop('reg_first_name')
+        last = request.session.pop('reg_last_name')
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
+        # Persist postal in profile and map restrictions
+        if postal:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.postal_code = postal
+            profile.save()
+            _assign_restrictions_from_postal(user, postal)
+        # Log user in to allow editing remaining restrictions seamlessly
+        user = authenticate(request, username=user.username, password=password)
+        if user:
+            auth_login(request, user)
+        # If all required categories satisfied, finish; otherwise go to restrictions page prefilled
+        if _user_has_full_restrictions(user):
+            messages.success(request, _('Registration complete. Restrictions assigned based on postal code.'))
+            return redirect('home')
+        else:
+            messages.info(request, _('We assigned what we could from your postal code. Please confirm remaining restrictions to finish.'))
+            return redirect('register_restrictions')
 
     return render(request, 'main/register_email.html')
 
@@ -258,37 +307,50 @@ def register_restrictions(request):
 
     if request.method == 'POST':
         selections, errors = parse_post()
-        if errors:
-            for e in errors:
-                messages.error(request, e)
+        if in_registration:
+            # Create user regardless of manual selections; apply postal-based restriction if provided
+            first = request.session.pop('reg_first_name')
+            last = request.session.pop('reg_last_name')
+            email = request.session.pop('reg_email')
+            username = request.session.pop('reg_username')
+            password = request.session.pop('reg_password')
+            postal = request.session.pop('reg_postal', '')
+            auto_restrictions = []
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
+            # Apply postal code mapping (Berlin Bezirk) if possible
+            if postal:
+                profile, _ = UserProfile.objects.get_or_create(user=user)
+                profile.postal_code = postal
+                profile.save()
+                _assign_restrictions_from_postal(user, postal)
+            # Save any manually selected restrictions
+            if selections:
+                bulk = [UserAudienceOption(user=user, option=opt) for opt in selections.values()]
+                UserAudienceOption.objects.bulk_create(bulk)
+            # Ensure auto_restrictions (preselected) are persisted if no manual submission happened for them
+            for oid in auto_restrictions:
+                if not UserAudienceOption.objects.filter(user=user, option_id=oid).exists():
+                    try:
+                        opt = AudienceOption.objects.get(pk=oid)
+                        UserAudienceOption.objects.create(user=user, option=opt)
+                    except AudienceOption.DoesNotExist:
+                        pass
+            messages.success(request, _('Registration complete. Please log in.'))
+            return redirect('login')
+        elif request.user.is_authenticated:
+            user = request.user
+            # Replace selections per category
+            from django.db.models import Q
+            cat_ids = list(selections.keys())
+            UserAudienceOption.objects.filter(user=user, option__category_id__in=cat_ids).delete()
+            if selections:
+                bulk = [UserAudienceOption(user=user, option=opt) for opt in selections.values()]
+                UserAudienceOption.objects.bulk_create(bulk)
+            messages.success(request, _('Restrictions saved.'))
+            return redirect('home')
         else:
-            if in_registration:
-                # Create user, then persist restrictions
-                first = request.session.pop('reg_first_name')
-                last = request.session.pop('reg_last_name')
-                email = request.session.pop('reg_email')
-                username = request.session.pop('reg_username')
-                password = request.session.pop('reg_password')
-                user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
-                # Save restrictions
-                bulk = [UserAudienceOption(user=user, option=opt) for opt in selections.values()]
-                UserAudienceOption.objects.bulk_create(bulk)
-                messages.success(request, 'Registration complete. Please log in.')
-                return redirect('login')
-            elif request.user.is_authenticated:
-                user = request.user
-                # Replace selections per category
-                # Delete any existing for these categories then add new
-                from django.db.models import Q
-                cat_ids = list(selections.keys())
-                UserAudienceOption.objects.filter(user=user, option__category_id__in=cat_ids).delete()
-                bulk = [UserAudienceOption(user=user, option=opt) for opt in selections.values()]
-                UserAudienceOption.objects.bulk_create(bulk)
-                messages.success(request, 'Restrictions saved.')
-                return redirect('home')
-            else:
-                messages.info(request, 'Please start registration to set restrictions.')
-                return redirect('register_name')
+            messages.info(request, _('Please start registration to set restrictions.'))
+            return redirect('register_name')
 
     # GET: build context with preselected values
     selected_map = {}
@@ -304,6 +366,15 @@ def register_restrictions(request):
             except AudienceOption.DoesNotExist:
                 continue
             selected_map[opt.category_id] = oid
+    elif in_registration:
+        # Use any auto mapped restrictions from postal code
+        auto_ids = request.session.get('auto_restrictions', [])
+        for oid in auto_ids:
+            try:
+                opt = AudienceOption.objects.select_related('category').get(pk=oid)
+                selected_map[opt.category_id] = oid
+            except AudienceOption.DoesNotExist:
+                continue
 
     context = {
         'categories': categories,
@@ -313,3 +384,18 @@ def register_restrictions(request):
         'in_registration': in_registration,
     }
     return render(request, 'main/register_restrictions.html', context)
+
+def toggle_language(request):
+    from django.conf import settings as dj_settings
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/'
+    current = translation.get_language() or dj_settings.LANGUAGE_CODE
+    new = 'de' if (current or '').startswith('en') else 'en'
+    translation.activate(new)
+    try:
+        request.session[translation.LANGUAGE_SESSION_KEY] = new  # type: ignore[attr-defined]
+    except Exception:
+        request.session['django_language'] = new
+    response = redirect(next_url)
+    cookie_name = getattr(dj_settings, 'LANGUAGE_COOKIE_NAME', 'django_language')
+    response.set_cookie(cookie_name, new)
+    return response

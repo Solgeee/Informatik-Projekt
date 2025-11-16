@@ -1,0 +1,203 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Informatik-Projekt\n"
+"POT-Creation-Date: 2025-11-16 00:00+0000\n"
+"PO-Revision-Date: 2025-11-16 00:00+0000\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/header
+msgid "Poll System"
+msgstr "Umfragesystem"
+
+msgid "Logged in as"
+msgstr "Angemeldet als"
+
+msgid "Logout"
+msgstr "Abmelden"
+
+msgid "Login"
+msgstr "Anmelden"
+
+msgid "Register"
+msgstr "Registrieren"
+
+msgid "Toggle dark mode"
+msgstr "Dunkelmodus umschalten"
+
+msgid "Change language"
+msgstr "Sprache ändern"
+
+#: templates/home
+msgid "Home"
+msgstr "Startseite"
+
+msgid "Available Polls"
+msgstr "Verfügbare Umfragen"
+
+msgid "Show restrictions"
+msgstr "Einschränkungen anzeigen"
+
+msgid "Your Restrictions"
+msgstr "Ihre Einschränkungen"
+
+msgid "Log in to see restrictions."
+msgstr "Melden Sie sich an, um Einschränkungen zu sehen."
+
+msgid "not selected"
+msgstr "nicht ausgewählt"
+
+msgid "No restriction categories defined."
+msgstr "Keine Einschränkungskategorien definiert."
+
+msgid "Restrictions must be set during registration before voting."
+msgstr "Einschränkungen müssen bei der Registrierung festgelegt werden, bevor Sie abstimmen."
+
+msgid "Vote on this poll"
+msgstr "An dieser Umfrage teilnehmen"
+
+msgid "Login to vote"
+msgstr "Zum Abstimmen anmelden"
+
+#: templates/results
+msgid "Poll Results"
+msgstr "Umfrageergebnisse"
+
+msgid "Total votes:"
+msgstr "Stimmen gesamt:"
+
+msgid "Switch"
+msgstr "Umschalten"
+
+msgid "Main Page"
+msgstr "Hauptseite"
+
+msgid "Vote Again"
+msgstr "Erneut abstimmen"
+
+#: templates/vote
+msgid "Vote"
+msgstr "Abstimmen"
+
+msgid "Cast Your Vote"
+msgstr "Geben Sie Ihre Stimme ab"
+
+msgid "No options available."
+msgstr "Keine Optionen verfügbar."
+
+msgid "Submit Vote"
+msgstr "Stimme abgeben"
+
+#: templates/login
+msgid "Email or Username"
+msgstr "E-Mail oder Benutzername"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Don't have an account?"
+msgstr "Noch kein Konto?"
+
+#: templates/register
+msgid "Register - Your Name"
+msgstr "Registrieren – Ihr Name"
+
+msgid "First name"
+msgstr "Vorname"
+
+msgid "Last name"
+msgstr "Nachname"
+
+msgid "Continue"
+msgstr "Weiter"
+
+msgid "Register - Account Details"
+msgstr "Registrieren – Kontodetails"
+
+msgid "Create your account"
+msgstr "Konto erstellen"
+
+msgid "Name:"
+msgstr "Name:"
+
+msgid "Email"
+msgstr "E-Mail"
+
+msgid "Username (optional, your email will be used if left blank)"
+msgstr "Benutzername (optional, E-Mail wird verwendet, wenn leer)"
+
+msgid "Postal Code (Berlin)"
+msgstr "Postleitzahl (Berlin)"
+
+msgid "Restrictions"
+msgstr "Einschränkungen"
+
+msgid "Select one option in each category. This is required to participate in polls."
+msgstr "Wählen Sie in jeder Kategorie eine Option. Dies ist erforderlich, um an Umfragen teilzunehmen."
+
+msgid "Current:"
+msgstr "Aktuell:"
+
+msgid "No options available for this category."
+msgstr "Keine Optionen für diese Kategorie verfügbar."
+
+msgid "No categories available."
+msgstr "Keine Kategorien verfügbar."
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Back to polls"
+msgstr "Zurück zu den Umfragen"
+
+#: views messages
+msgid "Please set your restrictions before voting."
+msgstr "Bitte legen Sie vor der Abstimmung Ihre Einschränkungen fest."
+
+msgid "No options available for this poll. Please ask an admin to add options."
+msgstr "Für diese Umfrage sind keine Optionen verfügbar. Bitte bitten Sie einen Admin, Optionen hinzuzufügen."
+
+msgid "Please select an option before submitting."
+msgstr "Bitte wählen Sie eine Option, bevor Sie absenden."
+
+msgid "Invalid option selected."
+msgstr "Ungültige Option ausgewählt."
+
+msgid "Invalid username or password."
+msgstr "Ungültiger Benutzername oder Passwort."
+
+msgid "Please start registration with your name."
+msgstr "Bitte beginnen Sie die Registrierung mit Ihrem Namen."
+
+msgid "Please provide a valid email address."
+msgstr "Bitte geben Sie eine gültige E‑Mail‑Adresse ein."
+
+msgid "Username already exists. Choose another."
+msgstr "Benutzername existiert bereits. Bitte wählen Sie einen anderen."
+
+msgid "Email already registered. Use another or login."
+msgstr "E‑Mail bereits registriert. Verwenden Sie eine andere oder melden Sie sich an."
+
+msgid "Password must be at least 4 characters."
+msgstr "Das Passwort muss mindestens 4 Zeichen lang sein."
+
+msgid "Registration complete. Restrictions assigned based on postal code."
+msgstr "Registrierung abgeschlossen. Einschränkungen wurden basierend auf der Postleitzahl zugewiesen."
+
+msgid "We assigned what we could from your postal code. Please confirm remaining restrictions to finish."
+msgstr "Wir haben anhand Ihrer Postleitzahl zugeordnet, was möglich war. Bitte bestätigen Sie die restlichen Einschränkungen, um abzuschließen."
+
+msgid "Please enter both first and last name."
+msgstr "Bitte geben Sie Vor- und Nachnamen ein."
+
+msgid "Registration complete. Please log in."
+msgstr "Registrierung abgeschlossen. Bitte melden Sie sich an."
+
+msgid "Restrictions saved."
+msgstr "Einschränkungen gespeichert."
+
+msgid "Please start registration to set restrictions."
+msgstr "Bitte beginnen Sie die Registrierung, um Einschränkungen festzulegen."

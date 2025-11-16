@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
-from main.views import register_restrictions
+from main.views import register_restrictions, toggle_language
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/main/", permanent=False)),  # Redirect root to /main/
@@ -9,4 +9,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Project-level helper path for restrictions (optional)
     path('restrictions/', register_restrictions, name='restrictions_project'),
+    # Project-level alias for language toggle to avoid reverse() issues
+    path('lang/toggle/', toggle_language, name='toggle_language'),
 ]

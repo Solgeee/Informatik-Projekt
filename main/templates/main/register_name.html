@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register - Your Name</title>
+    {% load i18n %}
+    <title>{% trans "Register - Your Name" %}</title>
     {% include 'main/header.html' with header_style=True %}
     <style>
         body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
@@ -12,8 +13,8 @@
         h1 { color: #2c3e50; margin-bottom: 24px; }
         .form-group { margin-bottom: 18px; text-align: left; }
         input[type="text"] { width: 90%; padding: 8px; margin-top: 6px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 10px 24px; background: #3498db; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        .btn:hover { background: #217dbb; }
+        .btn { padding: 10px 24px; background: var(--button-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: var(--button-bg-hover); }
         .error { color:#e74c3c; font-weight:600; margin-bottom: 12px; }
     </style>
 </head>
@@ -21,7 +22,7 @@
     {% include 'main/header.html' with header_content=True header_overlay=True %}
     <div class="auth-page">
         <div class="container">
-            <h1>Register</h1>
+            <h1>{% trans "Register" %}</h1>
         <div class="subheader-slot"></div>
         <div class="message-slot">
             {% if messages %}
@@ -33,14 +34,14 @@
         <form method="post" action="{% url 'register_name' %}">
             {% csrf_token %}
             <div class="form-group">
-                <label for="first_name">First name</label>
+                <label for="first_name">{% trans "First name" %}</label>
                 <input type="text" name="first_name" id="first_name" required>
             </div>
             <div class="form-group">
-                <label for="last_name">Last name</label>
+                <label for="last_name">{% trans "Last name" %}</label>
                 <input type="text" name="last_name" id="last_name" required>
             </div>
-            <button type="submit" class="btn">Continue</button>
+            <button type="submit" class="btn">{% trans "Continue" %}</button>
         </form>
         </div>
     </div>

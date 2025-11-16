@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django import forms
-from .models import Poll, Option, Vote, AudienceCategory, AudienceOption
+from .models import Poll, Option, Vote, AudienceCategory, AudienceOption, UserAudienceOption, BerlinPostalCode, UserProfile
 
 class OptionInline(admin.TabularInline):
 	model = Option
@@ -88,6 +88,36 @@ class CustomUserAdmin(BaseUserAdmin):
 			'fields': ('username', 'first_name', 'last_name', 'email', 'password1', 'password2'),
 		}),
 	)
+
+class UserProfileInline(admin.StackedInline):
+	model = UserProfile
+	can_delete = False
+	extra = 0
+	fields = ('postal_code',)
+
+class UserAudienceOptionInline(admin.TabularInline):
+	model = UserAudienceOption
+	extra = 0
+	fields = ('option',)
+
+CustomUserAdmin.inlines = [UserProfileInline, UserAudienceOptionInline]
+
+@admin.register(UserAudienceOption)
+class UserAudienceOptionAdmin(admin.ModelAdmin):
+	list_display = ('id', 'user', 'option')
+	list_filter = ('option__category',)
+	search_fields = ('user__username', 'option__name')
+
+@admin.register(BerlinPostalCode)
+class BerlinPostalCodeAdmin(admin.ModelAdmin):
+	list_display = ('code', 'bezirk')
+	search_fields = ('code', 'bezirk__name')
+	list_filter = ('bezirk__category',)
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+	list_display = ('user', 'postal_code')
+	search_fields = ('user__username', 'postal_code')
 
 
 admin.site.unregister(User)
