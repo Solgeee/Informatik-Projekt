@@ -266,11 +266,14 @@ def register_email(request):
             profile.save()
             _assign_restrictions_from_postal(user, postal)
         # Log user in to allow editing remaining restrictions seamlessly
-        user = authenticate(request, username=user.username, password=password)
-        if user:
-            auth_login(request, user)
+        authed_user = authenticate(request, username=user.username, password=password)
+        if authed_user:
+            auth_login(request, authed_user)
+            current_user = authed_user
+        else:
+            current_user = user
         # If all required categories satisfied, finish; otherwise go to restrictions page prefilled
-        if _user_has_full_restrictions(user):
+        if _user_has_full_restrictions(current_user):
             messages.success(request, _('Registration complete. Restrictions assigned based on postal code.'))
             return redirect('home')
         else:

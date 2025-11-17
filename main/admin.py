@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django import forms
 from .models import Poll, Option, Vote, AudienceCategory, AudienceOption, UserAudienceOption, BerlinPostalCode, UserProfile
+from django.contrib.admin.widgets import FilteredSelectMultiple
 
 class OptionInline(admin.TabularInline):
 	model = Option
@@ -11,13 +12,45 @@ class OptionInline(admin.TabularInline):
 	fields = ('text', 'order', 'votes')
 	readonly_fields = ('votes',)
 
+
+class PollAdminForm(forms.ModelForm):
+	district_options = forms.ModelMultipleChoiceField(
+		queryset=AudienceOption.objects.filter(category__name='Berlin Bezirk').order_by('name'),
+		required=False,
+		widget=FilteredSelectMultiple('Districts', is_stacked=False),
+		label='Districts (Bezirke)'
+	)
+
+	class Meta:
+		model = Poll
+		fields = '__all__'
+		widgets = {}
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		if self.instance and self.instance.pk:
+			self.fields['district_options'].initial = list(
+				self.instance.groups.filter(category__name='Berlin Bezirk').values_list('id', flat=True)
+			)
+
+	def save(self, commit=True):
+		obj = super().save(commit)
+		if obj.pk:
+			selected_districts = list(self.cleaned_data.get('district_options') or [])
+			# Preserve all non-Berlin-Bezirk groups and replace only Berlin-Bezirk
+			others = obj.groups.exclude(category__name='Berlin Bezirk')
+			obj.groups.set(list(others) + selected_districts)
+		return obj
+
+
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
+	form = PollAdminForm
 	list_display = ('id', 'question', 'is_visible')
 	list_editable = ('is_visible',)
 	list_filter = ('is_visible', 'groups',)
-	filter_horizontal = ('groups',)
 	exclude = (
+		'groups',
 		'option_one', 'option_two', 'option_three',
 		'option_one_count', 'option_two_count', 'option_three_count'
 	)

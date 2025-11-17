@@ -82,7 +82,13 @@ class AudienceOption(models.Model):
         ordering = ['category__name', 'name']
 
     def __str__(self):
-        return f"{self.category.name}: {self.name}"
+        try:
+            cat_name = self.category.name if self.category_id else ''
+        except Exception:
+            cat_name = ''
+        if cat_name == 'Berlin Bezirk':
+            return f"Berlin - {self.name}"
+        return f"{cat_name}: {self.name}" if cat_name else self.name
 
 
 class UserAudienceOption(models.Model):
