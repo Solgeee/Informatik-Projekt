@@ -399,3 +399,6 @@ def toggle_language(request):
     cookie_name = getattr(dj_settings, 'LANGUAGE_COOKIE_NAME', 'django_language')
     response.set_cookie(cookie_name, new)
     return response
+
+def welcome(request):
+    return render(request, 'main/welcome.html')  # # Render welcome page

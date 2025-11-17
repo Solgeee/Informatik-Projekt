@@ -5,9 +5,8 @@ from django.views.generic import RedirectView
 from . import views
 
 urlpatterns = [
-    path("", views.home, name="home"),
-    path("welcome/", views.welcome, name="welcome"),  # Restored for backward compatibility
-    path("home/", RedirectView.as_view(pattern_name="home", permanent=False)),
+    path("", views.welcome, name="home"),
+    path("home/", views.home, name="home"),
     path("vote/<int:poll_id>/", views.vote, name="vote"),
     path("results/<int:poll_id>/", views.results, name="results"),
     path("login/", views.login, name="login"),
@@ -19,6 +18,7 @@ urlpatterns = [
     path("register/restrictions/", views.register_restrictions, name="register_restrictions"),
     path("restrictions/", views.register_restrictions, name="restrictions"),
     path("register/email/", views.register_email, name="register_email"),
+    path("welcome/", views.welcome, name="welcome"),
     path("lang/toggle/", views.toggle_language, name="toggle_language"),
-    # Deprecated: removed legacy welcome route during merge resolution
+
 ]
