@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Home</title>
+    {% load i18n %}
+    <title>{% trans "Home" %}</title>
     {% load static %}
     {% include 'main/header.html' with header_style=True %}
     <style>
@@ -131,19 +132,19 @@
 <body>
     {% include 'main/header.html' with header_content=True %}
     <div class="container">
-        <h1>Available Polls</h1>
+        <h1>{% trans "Available Polls" %}</h1>
         <div class="restrictions-info-wrapper" style="margin: 12px 0 8px 0; text-align:center;">
-            <button id="restrictionsInfoBtn" class="info-toggle" type="button" title="Show restrictions" aria-haspopup="dialog" aria-controls="restrictionsModal" aria-expanded="false">ℹ</button>
+            <button id="restrictionsInfoBtn" class="info-toggle" type="button" title="{% trans 'Show restrictions' %}" aria-haspopup="dialog" aria-controls="restrictionsModal" aria-expanded="false">ℹ</button>
         </div>
         <div id="restrictionsModal" class="restriction-modal" role="dialog" aria-modal="true" aria-labelledby="restrictionsTitle" hidden>
             <div class="restriction-modal-content">
                 <div class="restriction-modal-header">
-                    <h2 id="restrictionsTitle">Your Restrictions</h2>
+                    <h2 id="restrictionsTitle">{% trans "Your Restrictions" %}</h2>
                     <button type="button" class="close-btn" id="restrictionsCloseBtn" aria-label="Close">×</button>
                 </div>
                 <div class="restriction-modal-body">
                     {% if not user.is_authenticated %}
-                        <p class="restriction-empty">Log in to see restrictions.</p>
+                        <p class="restriction-empty">{% trans "Log in to see restrictions." %}</p>
                     {% elif selected_groups_summary %}
                         <ul class="restriction-list">
                             {% for item in selected_groups_summary %}
@@ -153,12 +154,12 @@
                     {% else %}
                         <ul class="restriction-list">
                             {% for cat in restriction_categories %}
-                                <li>{{ cat.name }}: <em>not selected</em></li>
+                                <li>{{ cat.name }}: <em>{% trans "not selected" %}</em></li>
                             {% empty %}
-                                <li><em>No restriction categories defined.</em></li>
+                                <li><em>{% trans "No restriction categories defined." %}</em></li>
                             {% endfor %}
                         </ul>
-                        <p class="restriction-empty" style="margin-top:8px;">Restrictions must be set during registration before voting.</p>
+                        <p class="restriction-empty" style="margin-top:8px;">{% trans "Restrictions must be set during registration before voting." %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -179,9 +180,9 @@
                 </ul>
                 <div class="button-wrapper">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'vote' poll.id %}" class="vote-button">Vote on this poll</a>
+                        <a href="{% url 'vote' poll.id %}" class="vote-button">{% trans "Vote on this poll" %}</a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="vote-button">Login to vote</a>
+                        <a href="{% url 'login' %}" class="vote-button">{% trans "Login to vote" %}</a>
                     {% endif %}
                 </div>
             </div>

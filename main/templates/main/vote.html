@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vote</title>
+    {% load i18n %}
+    <title>{% trans "Vote" %}</title>
     {% load static %}
     {% include 'main/header.html' with header_style=True %}
     <style>
@@ -28,22 +29,9 @@
             color: #34495e;
             margin-bottom: 16px;
         }
-        .nav-links {
-            margin-top: 32px;
-        }
-        .nav-links a {
-            display: inline-block;
-            margin: 0 12px;
-            padding: 10px 24px;
-            background: #3498db;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .nav-links a:hover {
-            background: #217dbb;
-        }
+        .nav-links { margin-top: 32px; }
+        .btn { display:inline-block; padding:8px 16px; background: var(--button-bg, #f3f4f6); color: var(--text, #2c3e50); border: 1px solid var(--border, #d1d5db); border-radius: 6px; cursor: pointer; text-decoration: none; transition: background .15s ease, border-color .15s ease; }
+        .btn:hover { background: var(--button-bg-hover, #e5e7eb); }
         form {
             margin-top: 24px;
             text-align: left;
@@ -92,7 +80,7 @@
 <body>
     {% include 'main/header.html' with header_content=True %}
     <div class="container">
-        <h1>Cast Your Vote</h1>
+        <h1>{% trans "Cast Your Vote" %}</h1>
         <div class="poll-question">{{ poll.question }}</div>
 
         {% if messages %}
@@ -114,17 +102,17 @@
                     </label>
                     {% endfor %}
                 {% else %}
-                    <div class="nav-links">No options available.</div>
+                    <div class="nav-links">{% trans "No options available." %}</div>
                 {% endif %}
             </div>
             
             <div class="button-wrapper">
-                <input type="submit" value="Submit Vote">
+                <input type="submit" value="{% trans 'Submit Vote' %}">
             </div>
         </form>
 
         <div class="nav-links">
-            <a href="{% url 'home' %}">Main Page</a>
+            <a class="btn" href="{% url 'home' %}">{% trans "Main Page" %}</a>
         </div>
     </div>
 </body>

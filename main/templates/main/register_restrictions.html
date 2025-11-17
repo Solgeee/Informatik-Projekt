@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Restrictions</title>
+    {% load i18n %}
+    <title>{% trans "Restrictions" %}</title>
     {% include 'main/header.html' with header_style=True %}
     <style>
         body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
@@ -29,8 +30,8 @@
 <body>
     {% include 'main/header.html' with header_content=True %}
     <div class="container">
-        <h1>Restrictions</h1>
-        <p class="note">Select one option in each category. This is required to participate in polls.</p>
+        <h1>{% trans "Restrictions" %}</h1>
+        <p class="note">{% trans "Select one option in each category. This is required to participate in polls." %}</p>
 
         <div class="messages">
             {% if messages %}
@@ -42,7 +43,7 @@
 
         {% if selected_groups_summary %}
             <div class="summary subtle">
-                <strong>Current:</strong>
+                <strong>{% trans "Current:" %}</strong>
                 {{ selected_groups_summary|join:', ' }}
             </div>
         {% endif %}
@@ -58,15 +59,15 @@
                             <span>{{ option.name }}</span>
                         </label>
                     {% empty %}
-                        <div class="empty">No options available for this category.</div>
+                        <div class="empty">{% trans "No options available for this category." %}</div>
                     {% endfor %}
                 </fieldset>
             {% empty %}
-                <div class="empty">No categories available.</div>
+                <div class="empty">{% trans "No categories available." %}</div>
             {% endfor %}
             <div class="actions">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a class="btn btn-neutral" href="{% url 'home' %}">Back to polls</a>
+                <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+                <a class="btn btn-neutral" href="{% url 'home' %}">{% trans "Back to polls" %}</a>
             </div>
         </form>
     </div>

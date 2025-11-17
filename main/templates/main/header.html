@@ -1,4 +1,5 @@
 {% comment %}Header Component{% endcomment %}
+{% load i18n %}
 {% if header_style %}
 <style>
     /* Theme variables: light by default (colorful), dark is grayscale */
@@ -92,6 +93,18 @@
         align-items: center;
         gap: 12px;
     }
+    .lang-toggle {
+        padding: 6px 10px;
+        background: var(--button-bg);
+        color: var(--text);
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        font-size: 0.95em;
+        line-height: 1;
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .lang-toggle:hover { background: var(--button-bg-hover); transform: translateY(-1px); }
     .auth-status {
         color: var(--muted-text);
         font-size: 0.9em;
@@ -152,15 +165,18 @@
 
 {% if header_content %}
 <div class="header">
-    <a href="{% url 'home' %}" class="header-title">Poll System</a>
+    <a href="{% url 'home' %}" class="header-title">{% trans "Poll System" %}</a>
     <div class="auth-section">
         {% if user.is_authenticated %}
-            <span class="auth-status">Logged in as {% if user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</span>
-            <a href="{% url 'logout' %}" class="auth-button">Logout</a>
+            <span class="auth-status">{% trans "Logged in as" %} {% if user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</span>
+            <a href="{% url 'logout' %}" class="auth-button">{% trans "Logout" %}</a>
         {% else %}
-            <a href="{% url 'login' %}" class="auth-button">Login</a>
-            <a href="{% url 'register_name' %}" class="auth-button">Register</a>
+            <a href="{% url 'login' %}" class="auth-button">{% trans "Login" %}</a>
+            <a href="{% url 'register_name' %}" class="auth-button">{% trans "Register" %}</a>
         {% endif %}
+        <a class="lang-toggle" id="langToggle" href="{% url 'toggle_language' %}?next={{ request.get_full_path|urlencode }}" title="{% trans 'Change language' %}" aria-label="{% trans 'Change language' %}">
+            {% if request.LANGUAGE_CODE|slice:":2" == 'de' %}🇩🇪{% else %}🇺🇸{% endif %}
+        </a>
     </div>
 </div>
 {% if not header_overlay %}
@@ -168,7 +184,7 @@
 {% endif %}
 
 <!-- Floating dark mode toggle -->
-<div class="theme-toggle" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">○</div>
+<div class="theme-toggle" id="themeToggle" title="{% trans 'Toggle dark mode' %}" aria-label="{% trans 'Toggle dark mode' %}">○</div>
 <script>
     (function(){
         try {
@@ -193,6 +209,6 @@
                 updateIcon();
             });
         } catch (e) { /* no-op */ }
-    })();
+        })();
     </script>
 {% endif %}

@@ -1,5 +1,6 @@
 # Connects a URL to a view
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 
@@ -18,4 +19,6 @@ urlpatterns = [
     path("restrictions/", views.register_restrictions, name="restrictions"),
     path("register/email/", views.register_email, name="register_email"),
     path("welcome/", views.welcome, name="welcome"),
+    path("lang/toggle/", views.toggle_language, name="toggle_language"),
+
 ]
