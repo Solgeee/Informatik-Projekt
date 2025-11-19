@@ -138,15 +138,44 @@ def sync_postal_restriction(sender, instance, **kwargs):
     code = (instance.postal_code or '').strip()
     if not code:
         return
+    # First try Berlin-specific mapping
     mapping = BerlinPostalCode.objects.select_related('bezirk__category').filter(code=code).first()
-    if not mapping:
+    if mapping:
+        bezirk_option = mapping.bezirk
+        # Guarantee category integrity
+        if bezirk_option.category.name != 'Berlin Bezirk':
+            cat, _ = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
+            if bezirk_option.category_id != cat.id:
+                bezirk_option, _ = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
+        # Replace any existing selection for this category
+        UserAudienceOption.objects.filter(user=instance.user, option__category=bezirk_option.category).delete()
+        UserAudienceOption.objects.get_or_create(user=instance.user, option=bezirk_option)
         return
-    bezirk_option = mapping.bezirk
-    # Guarantee category integrity
-    if bezirk_option.category.name != 'Berlin Bezirk':
-        cat, _ = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
-        if bezirk_option.category_id != cat.id:
-            bezirk_option, _ = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
-    # Replace any existing selection for this category
-    UserAudienceOption.objects.filter(user=instance.user, option__category=bezirk_option.category).delete()
-    UserAudienceOption.objects.get_or_create(user=instance.user, option=bezirk_option)
+
+    # Fallback: try to assign a Bundesland-level AudienceOption using the german-postcodes.csv dataset
+    try:
+        from pathlib import Path
+        import csv
+        root = Path(__file__).resolve().parents[1]
+        csv_path = root / 'data' / 'german-postcodes.csv'
+        if csv_path.exists():
+            with csv_path.open(newline='', encoding='utf-8') as fh:
+                reader = csv.DictReader(fh)
+                # The CSV has headers like Ort,Plz,Bundesland
+                match = None
+                for r in reader:
+                    plz = (r.get('Plz') or r.get('plz') or r.get('Plz') or '').strip()
+                    if plz == code:
+                        match = r
+                        break
+                if match:
+                    bundesland = (match.get('Bundesland') or match.get('bundesland') or '').strip()
+                    if bundesland:
+                        cat, _ = AudienceCategory.objects.get_or_create(name='Bundesland')
+                        option, _ = AudienceOption.objects.get_or_create(category=cat, name=bundesland)
+                        # Replace any existing selection for this category
+                        UserAudienceOption.objects.filter(user=instance.user, option__category=cat).delete()
+                        UserAudienceOption.objects.get_or_create(user=instance.user, option=option)
+    except Exception:
+        # Don't let CSV issues break user save flow; fail silently
+        pass
