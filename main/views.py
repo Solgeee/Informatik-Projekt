@@ -9,6 +9,11 @@ from django.contrib.auth.decorators import login_required  # # Protects routes r
 import re
 from django.utils.translation import gettext as _
 from django.utils import translation
+from django.core.mail import send_mail
+from django.utils import timezone
+from datetime import timedelta
+import random
+from .models import EmailVerification
 
 
 def _user_restriction_summary(user):
@@ -226,7 +231,8 @@ def register_name(request):
         else:
             request.session['reg_first_name'] = first
             request.session['reg_last_name'] = last
-            return redirect('register_email')
+            # proceed to email verification step
+            return redirect('request_verification')
     return render(request, 'main/register_name.html')
 
 def register_email(request):
@@ -235,7 +241,12 @@ def register_email(request):
         return redirect('register_name')
 
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
+        # require that the email was previously verified
+        if not request.session.get('email_verified'):
+            messages.error(request, _('Please verify your email before continuing.'))
+            return redirect('request_verification')
+
+        email = request.POST.get('email', '').strip() or request.session.get('reg_email', '')
         username = request.POST.get('username', '').strip()  # optional custom username
         password = request.POST.get('password', '').strip()
         postal = request.POST.get('postal_code', '').strip()
@@ -258,6 +269,7 @@ def register_email(request):
         # Create the user immediately and assign postal-based restrictions
         first = request.session.pop('reg_first_name')
         last = request.session.pop('reg_last_name')
+        # keep reg_email and email_verified in session until registration completes
         user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
         # Persist postal in profile and map restrictions
         if postal:
@@ -275,12 +287,64 @@ def register_email(request):
         # If all required categories satisfied, finish; otherwise go to restrictions page prefilled
         if _user_has_full_restrictions(current_user):
             messages.success(request, _('Registration complete. Restrictions assigned based on postal code.'))
+            # cleanup verification session flags
+            request.session.pop('email_verified', None)
+            request.session.pop('reg_email', None)
             return redirect('home')
         else:
             messages.info(request, _('We assigned what we could from your postal code. Please confirm remaining restrictions to finish.'))
             return redirect('register_restrictions')
 
     return render(request, 'main/register_email.html')
+
+
+def request_verification(request):
+    """Step where user submits an email to receive a verification code."""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        if not email or '@' not in email:
+            messages.error(request, _('Please provide a valid email address.'))
+            return render(request, 'main/request_verification.html')
+        # create a 6-digit numeric code
+        code = f"{random.randint(0, 999999):06d}"
+        expires = timezone.now() + timedelta(minutes=15)
+        EmailVerification.objects.create(email=email, code=code, expires_at=expires)
+        # Send email (uses settings.EMAIL_BACKEND)
+        subject = _('Your verification code')
+        message = _('Your verification code is: ') + code
+        try:
+            send_mail(subject, message, None, [email])
+            messages.success(request, _('Verification code sent. Check your email.'))
+        except Exception:
+            messages.error(request, _('Failed to send verification email.'))
+        # Store the email in session for later registration steps
+        request.session['reg_email'] = email
+        return redirect('verify_code')
+    return render(request, 'main/request_verification.html')
+
+
+def verify_code(request):
+    """Enter the code received by email to confirm ownership."""
+    email = request.session.get('reg_email')
+    if not email:
+        messages.info(request, _('Please enter your email first.'))
+        return redirect('request_verification')
+
+    if request.method == 'POST':
+        code = request.POST.get('code', '').strip()
+        now = timezone.now()
+        ev = EmailVerification.objects.filter(email__iexact=email, code=code, used=False, expires_at__gte=now).order_by('-created').first()
+        if ev:
+            ev.used = True
+            ev.save(update_fields=['used'])
+            # Mark verified in session
+            request.session['email_verified'] = True
+            messages.success(request, _('Email verified. Continue registration.'))
+            return redirect('register_email')
+        else:
+            messages.error(request, _('Invalid or expired verification code.'))
+
+    return render(request, 'main/verify_code.html', { 'email': email })
 
 def logout_view(request):
     logout(request)  # # Clear user session

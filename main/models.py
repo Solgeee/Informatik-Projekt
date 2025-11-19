@@ -156,3 +156,21 @@ def sync_postal_restriction(sender, instance, **kwargs):
     # Replace any existing selection for this category
     UserAudienceOption.objects.filter(user=instance.user, option__category=bezirk_option.category).delete()
     UserAudienceOption.objects.get_or_create(user=instance.user, option=bezirk_option)
+
+
+class EmailVerification(models.Model):
+    """Stores a short numeric verification code sent to an email address.
+
+    Used during registration: a code is created for an email and expires after a short period.
+    """
+    email = models.EmailField()
+    code = models.CharField(max_length=12)
+    created = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [models.Index(fields=["email"]), models.Index(fields=["code"])]
+
+    def __str__(self):
+        return f"EmailVerification({self.email}) code={self.code} used={self.used}"

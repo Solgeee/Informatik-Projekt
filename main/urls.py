@@ -18,6 +18,8 @@ urlpatterns = [
     path("register/restrictions/", views.register_restrictions, name="register_restrictions"),
     path("restrictions/", views.register_restrictions, name="restrictions"),
     path("register/email/", views.register_email, name="register_email"),
+    path("register/request-verification/", views.request_verification, name="request_verification"),
+    path("register/verify-code/", views.verify_code, name="verify_code"),
     path("welcome/", views.welcome, name="welcome"),
     path("lang/toggle/", views.toggle_language, name="toggle_language"),
 

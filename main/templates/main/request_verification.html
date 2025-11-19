@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load i18n %}
+    <title>{% trans "Verify email" %}</title>
+    {% include 'main/header.html' with header_content=True header_overlay=True %}
+    <style>body{font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:0}.container{max-width:520px;margin:80px auto;background:#fff;padding:28px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.08)}</style>
+</head>
+<body>
+    <div class="container">
+        <h1>{% trans "Verify your email" %}</h1>
+        {% if messages %}{% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}{% endif %}
+        <form method="post" action="{% url 'request_verification' %}">{% csrf_token %}
+            <div>
+                <label for="email">{% trans "Email address" %}</label><br>
+                <input type="text" name="email" id="email" required style="width:96%;padding:8px;margin-top:6px;border-radius:4px;border:1px solid #ccc">
+            </div>
+            <div style="margin-top:16px">
+                <button class="btn" type="submit">{% trans "Send verification code" %}</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
