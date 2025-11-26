@@ -9,6 +9,10 @@ from django.contrib.auth.decorators import login_required  # # Protects routes r
 import re
 from django.utils.translation import gettext as _
 from django.utils import translation
+from django.core.validators import validate_email  # add
+from django.core.exceptions import ValidationError  # add
+from django.db import transaction, IntegrityError
+import random
 
 
 def _user_restriction_summary(user):
@@ -67,6 +71,11 @@ def _assign_restrictions_from_postal(user, postal_code: str):
     UserAudienceOption.objects.filter(user=user, option__category=bezirk_option.category).delete()
     UserAudienceOption.objects.create(user=user, option=bezirk_option)
     return True
+
+
+def _normalize_postal_code(value: str) -> str:
+    """Keep only digits (e.g., '10961' from '10961 ' or '10961-')."""
+    return ''.join(ch for ch in (value or '') if ch.isdigit())
 
 
 def home(request):
@@ -230,57 +239,92 @@ def register_name(request):
     return render(request, 'main/register_name.html')
 
 def register_email(request):
-    if 'reg_first_name' not in request.session or 'reg_last_name' not in request.session:
-        messages.error(request, _('Please start registration with your name.'))
-        return redirect('register_name')
+    """
+    Final registration step: validates email, password, and Berlin postal code.
+    On success: creates user and redirects to login with a success message.
+    On failure: re-renders with error messages.
+    """
+    if request.method == "POST":
+        email = (request.POST.get("email") or "").strip()
+        username = (request.POST.get("username") or "").strip()
+        password = (request.POST.get("password") or "").strip()
+        postal_raw = (request.POST.get("postal_code") or "").strip()
+        postal = _normalize_postal_code(postal_raw)
 
-    if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        username = request.POST.get('username', '').strip()  # optional custom username
-        password = request.POST.get('password', '').strip()
-        postal = request.POST.get('postal_code', '').strip()
+        # Basic validations
+        if not email:
+            messages.error(request, _("Email required."))
+            return render(request, "main/register_email.html", {"email": email, "username": username, "postal_code": postal_raw})
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, _("Invalid email format."))
+            return render(request, "main/register_email.html", {"email": email, "username": username, "postal_code": postal_raw})
+        if not password:
+            messages.error(request, _("Password required."))
+            return render(request, "main/register_email.html", {"email": email, "username": username, "postal_code": postal_raw})
+        if len(postal) != 5 or not postal.isdigit():
+            messages.error(request, _("Postal code must be 5 digits."))
+            return render(request, "main/register_email.html", {"email": email, "username": username, "postal_code": postal_raw})
 
-        # Basic email format validation
-        if '@' not in email or '.' not in email.split('@')[-1]:
-            messages.error(request, _('Please provide a valid email address.'))
-            return render(request, 'main/register_email.html')
+        # Enforce postal code exists in BerlinPostalCode (CSV-loaded)
+        if not BerlinPostalCode.objects.filter(code=postal).exists():
+            messages.error(request, _("The postal code you entered isn't available for Berlin."))
+            return render(request, "main/register_email.html", {
+                "email": email, "username": username, "postal_code": postal_raw
+            })
+
+        # Auto username if blank
         if not username:
-            username = email.split('@')[0]
-        if User.objects.filter(username=username).exists():
-            messages.error(request, _('Username already exists. Choose another.'))
-            return render(request, 'main/register_email.html')
-        if User.objects.filter(email=email).exists():
-            messages.error(request, _('Email already registered. Use another or login.'))
-            return render(request, 'main/register_email.html')
-        if len(password) < 4:
-            messages.error(request, _('Password must be at least 4 characters.'))
-            return render(request, 'main/register_email.html')
-        # Create the user immediately and assign postal-based restrictions
-        first = request.session.pop('reg_first_name')
-        last = request.session.pop('reg_last_name')
-        user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
-        # Persist postal in profile and map restrictions
-        if postal:
-            profile, _ = UserProfile.objects.get_or_create(user=user)
-            profile.postal_code = postal
-            profile.save()
-            _assign_restrictions_from_postal(user, postal)
-        # Log user in to allow editing remaining restrictions seamlessly
-        authed_user = authenticate(request, username=user.username, password=password)
-        if authed_user:
-            auth_login(request, authed_user)
-            current_user = authed_user
-        else:
-            current_user = user
-        # If all required categories satisfied, finish; otherwise go to restrictions page prefilled
-        if _user_has_full_restrictions(current_user):
-            messages.success(request, _('Registration complete. Restrictions assigned based on postal code.'))
-            return redirect('home')
-        else:
-            messages.info(request, _('We assigned what we could from your postal code. Please confirm remaining restrictions to finish.'))
-            return redirect('register_restrictions')
+            base = email.split("@", 1)[0]
+            candidate = base
+            while User.objects.filter(username=candidate).exists():
+                candidate = f"{base}{random.randint(1000,9999)}"
+            username = candidate
 
-    return render(request, 'main/register_email.html')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, _("Email already in use."))
+            return render(request, "main/register_email.html", {"email": "", "username": "", "postal_code": postal_raw})
+
+        first_name = (request.session.get("reg_first_name") or "").strip()
+        last_name = (request.session.get("reg_last_name") or "").strip()
+
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+                profile, created_profile = UserProfile.objects.get_or_create(user=user, defaults={"postal_code": postal})
+                if profile.postal_code != postal:
+                    profile.postal_code = postal
+                    profile.save(update_fields=["postal_code"])
+
+                # Apply restrictions based on postal
+                if not _assign_restrictions_from_postal(user, postal):
+                    raise IntegrityError("Restriction assignment failed")
+
+        except IntegrityError:
+            messages.error(request, _("Registration failed. Username or restriction error."))
+            return render(request, "main/register_email.html", {
+                "email": email, "username": "", "postal_code": postal_raw
+            })
+
+        # Cleanup session data
+        for k in ("reg_first_name", "reg_last_name"):
+            request.session.pop(k, None)
+
+        messages.success(request, _("Your account is set up. Please log in."))
+        return redirect("login")
+
+    # GET
+    return render(request, "main/register_email.html", {
+        "email": "", "username": "", "postal_code": ""
+    })
+
 
 def logout_view(request):
     logout(request)  # # Clear user session
