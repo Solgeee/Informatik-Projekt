@@ -2,9 +2,12 @@
 <html>
 <head>
     {% load i18n %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% trans "Register - Your Name" %}</title>
     {% include 'main/header.html' with header_style=True %}
     <style>
+        {% include 'main/includes/register_progress_styles.html' %}
         body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
         .auth-page { min-height: calc(100vh - 60px); margin-top: 60px; display: flex; align-items: center; justify-content: center; }
     .container { width: 500px; max-width: 92vw; margin: 0 auto 40px; min-height: 440px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; box-sizing: border-box; }
@@ -23,6 +26,7 @@
     <div class="auth-page">
         <div class="container">
             <h1>{% trans "Register" %}</h1>
+        {% include 'main/includes/register_progress.html' with current_step=1 %}
         <div class="subheader-slot"></div>
         <div class="message-slot">
             {% if messages %}

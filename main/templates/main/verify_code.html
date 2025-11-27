@@ -2,24 +2,49 @@
 <html>
 <head>
     {% load i18n %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% trans "Enter verification code" %}</title>
-    {% include 'main/header.html' with header_content=True header_overlay=True %}
-    <style>body{font-family:Arial,sans-serif;background:#f4f6fa;margin:0;padding:0}.container{max-width:520px;margin:80px auto;background:#fff;padding:28px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.08)}</style>
+    {% include 'main/header.html' with header_style=True %}
+    <style>
+        {% include 'main/includes/register_progress_styles.html' %}
+        body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
+        .auth-page { min-height: calc(100vh - 60px); margin-top: 60px; display: flex; align-items: center; justify-content: center; }
+        .container { width: 500px; max-width: 92vw; margin: 0 auto 40px; min-height: 420px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; box-sizing: border-box; }
+        h1 { color: #2c3e50; margin-bottom: 12px; }
+        p { color: #475467; }
+        .message-slot { min-height: 28px; margin-bottom: 12px; }
+        .error { color:#e74c3c; font-weight:600; }
+        .form-group { margin-bottom: 18px; text-align: left; }
+        label { font-weight: 600; color: var(--text, #2c3e50); display:block; }
+        input[type="text"] { width: 90%; padding: 10px; margin-top: 6px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; background: var(--input-bg, #fff); color: var(--text, #2c3e50); letter-spacing: 0.2em; text-transform: uppercase; }
+        .btn { padding: 10px 24px; border-radius: 6px; border: 1px solid var(--border, #cbd5e1); background: var(--button-bg, #f3f4f6); cursor: pointer; }
+        .btn:hover { background: var(--button-bg-hover, #e5e7eb); }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>{% trans "Enter the code" %}</h1>
-        <p>{% trans "We sent a code to" %} <strong>{{ email }}</strong></p>
-        {% if messages %}{% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}{% endif %}
-        <form method="post" action="{% url 'verify_code' %}">{% csrf_token %}
-            <div>
-                <label for="code">{% trans "Verification code" %}</label><br>
-                <input type="text" name="code" id="code" required style="width:96%;padding:8px;margin-top:6px;border-radius:4px;border:1px solid #ccc">
+    {% include 'main/header.html' with header_content=True header_overlay=True %}
+    <div class="auth-page">
+        <div class="container">
+            <h1>{% trans "Enter the code" %}</h1>
+            {% include 'main/includes/register_progress.html' with current_step=3 %}
+            <p>{% trans "We sent a code to" %} <strong>{{ email }}</strong></p>
+            <div class="message-slot">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="error">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
             </div>
-            <div style="margin-top:16px">
+            <form method="post" action="{% url 'verify_code' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="code">{% trans "Verification code" %}</label>
+                    <input type="text" name="code" id="code" required maxlength="6">
+                </div>
                 <button class="btn" type="submit">{% trans "Verify" %}</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </body>
 </html>

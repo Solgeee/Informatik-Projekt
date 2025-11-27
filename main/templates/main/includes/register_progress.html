@@ -1,0 +1,23 @@
+{% load i18n %}
+<ul class="reg-progress" aria-label="{% trans 'Registration progress' %}">
+    <li class="reg-progress__step {% if current_step > 1 %}is-complete{% elif current_step == 1 %}is-current{% endif %}">
+        <span class="reg-progress__number">1</span>
+        <span class="reg-progress__label">{% trans "Your name" %}</span>
+        <span class="reg-progress__hint">{% trans "Tell us who you are" %}</span>
+    </li>
+    <li class="reg-progress__step {% if current_step > 2 %}is-complete{% elif current_step == 2 %}is-current{% endif %}">
+        <span class="reg-progress__number">2</span>
+        <span class="reg-progress__label">{% trans "Verify email" %}</span>
+        <span class="reg-progress__hint">{% trans "Send the code" %}</span>
+    </li>
+    <li class="reg-progress__step {% if current_step > 3 %}is-complete{% elif current_step == 3 %}is-current{% endif %}">
+        <span class="reg-progress__number">3</span>
+        <span class="reg-progress__label">{% trans "Enter code" %}</span>
+        <span class="reg-progress__hint">{% trans "Confirm access" %}</span>
+    </li>
+    <li class="reg-progress__step {% if current_step > 4 %}is-complete{% elif current_step == 4 %}is-current{% endif %}">
+        <span class="reg-progress__number">4</span>
+        <span class="reg-progress__label">{% trans "Account" %}</span>
+        <span class="reg-progress__hint">{% trans "Choose login details" %}</span>
+    </li>
+</ul>

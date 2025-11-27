@@ -5,6 +5,7 @@
     <title>{% trans "Restrictions" %}</title>
     {% include 'main/header.html' with header_style=True %}
     <style>
+        {% include 'main/includes/register_progress_styles.html' %}
         body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         .container { max-width: 720px; margin: 60px auto; background: var(--card-bg); border-radius: 10px; box-shadow: 0 4px 16px var(--elev); padding: 24px; }
         h1 { margin: 0 0 16px 0; }
@@ -30,7 +31,7 @@
 <body>
     {% include 'main/header.html' with header_content=True %}
     <div class="container">
-        <h1>{% trans "Restrictions" %}</h1>
+    <h1>{% trans "Restrictions" %}</h1>
         <p class="note">{% trans "Select one option in each category. This is required to participate in polls." %}</p>
 
         <div class="messages">
