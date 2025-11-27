@@ -63,10 +63,10 @@ def _assign_restrictions_from_postal(user, postal_code: str):
     # Ensure it's under the correct category name
     if bezirk_option.category.name != 'Berlin Bezirk':
         # If data inconsistency, attempt to move or recreate under correct category
-        cat, _ = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
+        cat, _created = AudienceCategory.objects.get_or_create(name='Berlin Bezirk')
         if bezirk_option.category_id != cat.id:
             # Create/get proper option under Berlin Bezirk
-            bezirk_option, _ = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
+            bezirk_option, _created = AudienceOption.objects.get_or_create(category=cat, name=mapping.bezirk.name)
     # Upsert user's selection for this category
     from django.db.models import Q
     UserAudienceOption.objects.filter(user=user, option__category=bezirk_option.category).delete()
@@ -273,7 +273,7 @@ def register_email(request):
         user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
         # Persist postal in profile and map restrictions
         if postal:
-            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile, _created = UserProfile.objects.get_or_create(user=user)
             profile.postal_code = postal
             profile.save()
             _assign_restrictions_from_postal(user, postal)
@@ -386,7 +386,7 @@ def register_restrictions(request):
             user = User.objects.create_user(username=username, password=password, email=email, first_name=first, last_name=last)
             # Apply postal code mapping (Berlin Bezirk) if possible
             if postal:
-                profile, _ = UserProfile.objects.get_or_create(user=user)
+                profile, _created = UserProfile.objects.get_or_create(user=user)
                 profile.postal_code = postal
                 profile.save()
                 _assign_restrictions_from_postal(user, postal)

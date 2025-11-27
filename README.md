@@ -20,6 +20,7 @@ USEFUL COPY'S:
 
 * git cheet sheet: https://training.github.com/downloads/github-git-cheat-sheet.pdf
 
-* Twilio account email: projektinformatik5@gmail.com
+* Twilio account email: projektinformatik5@gmail.com -> ubkw gynf toaz kiyt
 
 * password: InfProj2025
+
