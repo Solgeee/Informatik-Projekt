@@ -310,6 +310,14 @@ def request_verification(request):
         if not email or '@' not in email:
             messages.error(request, _('Please provide a valid email address.'))
             return render(request, 'main/request_verification.html')
+        # Don't allow requesting verification for an email that's already registered
+        try:
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(request, _('Email already registered. Please log in or use a different email.'))
+                return render(request, 'main/request_verification.html')
+        except Exception:
+            # If User model isn't available for some reason, continue with verification flow
+            pass
         # create a 6-digit numeric code
         code = f"{random.randint(0, 999999):06d}"
         expires = timezone.now() + timedelta(minutes=15)
@@ -338,6 +346,14 @@ def verify_code(request):
     if request.method == 'POST':
         code = request.POST.get('code', '').strip()
         now = timezone.now()
+        # If the email is already registered, disallow verification and prompt to login
+        try:
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(request, _('This email is already registered. Please log in.'))
+                return redirect('login')
+        except Exception:
+            # If User lookup fails for any reason, continue to verification attempt
+            pass
         ev = EmailVerification.objects.filter(email__iexact=email, code=code, used=False, expires_at__gte=now).order_by('-created').first()
         if ev:
             ev.used = True
