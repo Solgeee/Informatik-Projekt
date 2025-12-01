@@ -246,7 +246,12 @@ def register_email(request):
             messages.error(request, _('Please verify your email before continuing.'))
             return redirect('request_verification')
 
-        email = request.POST.get('email', '').strip() or request.session.get('reg_email', '')
+        # Always use the email that was verified and stored in session.
+        # Do not trust a POSTed email value here — it must match the previously verified one.
+        email = request.session.get('reg_email', '').strip()
+        # Defensive: if for some reason email_verified is True but reg_email is missing, fall back to POST.
+        if not email:
+            email = request.POST.get('email', '').strip()
         username = request.POST.get('username', '').strip()  # optional custom username
         password = request.POST.get('password', '').strip()
         postal = request.POST.get('postal_code', '').strip()

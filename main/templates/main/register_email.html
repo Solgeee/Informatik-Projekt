@@ -42,10 +42,15 @@
             {% csrf_token %}
             <div class="form-group">
                 <label for="email">{% trans "Email" %}</label>
-                <input type="text" name="email" id="email" required>
+                {% if request.session.email_verified %}
+                    <input type="text" name="email" id="email" value="{{ request.session.reg_email }}" readonly required>
+                {% else %}
+                    <input type="text" name="email" id="email" value="{{ request.session.reg_email }}" required>
+                {% endif %}
+                <div class="info" style="font-size:0.9em;margin-top:6px;">{% trans "The email used for verification will be saved as your account email." %}</div>
             </div>
             <div class="form-group">
-                <label for="username">{% trans "Username (optional, your email will be used if left blank)" %}</label>
+                <label for="username">{% trans "Username" %}</label>
                 <input type="text" name="username" id="username">
             </div>
             <div class="form-group">
