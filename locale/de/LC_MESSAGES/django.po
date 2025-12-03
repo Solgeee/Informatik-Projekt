@@ -201,3 +201,31 @@ msgstr "Einschränkungen gespeichert."
 
 msgid "Please start registration to set restrictions."
 msgstr "Bitte beginnen Sie die Registrierung, um Einschränkungen festzulegen."
+
+# Registration progress component
+msgid "Registration progress"
+msgstr "Registrierungsfortschritt"
+
+msgid "Your name"
+msgstr "Ihr Name"
+
+msgid "Verify email"
+msgstr "E-Mail verifizieren"
+
+msgid "Enter code"
+msgstr "Code eingeben"
+
+msgid "Account"
+msgstr "Konto"
+
+msgid "Tell us who you are"
+msgstr "Sagen Sie uns, wie sie heißen"
+
+msgid "Send the code"
+msgstr "Code senden"
+
+msgid "Confirm access"
+msgstr "Zugang bestätigen"
+
+msgid "Choose login details"
+msgstr "Anmeldedaten wählen"
