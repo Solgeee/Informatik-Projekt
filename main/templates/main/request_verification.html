@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {% load i18n %}
+    {% load i18n static %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% trans "Verify email" %}</title>
     {% include 'main/header.html' with header_style=True %}
     <style>
         {% include 'main/includes/register_progress_styles.html' %}
-        body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
+        /* Use theme variables so dark mode is applied even when header styles are not present */
+        body { font-family: Arial, sans-serif; background: var(--bg, #f4f6fa); margin: 0; padding: 0; color: var(--text, #2c3e50); }
         .auth-page { min-height: calc(100vh - 60px); margin-top: 60px; display: flex; align-items: center; justify-content: center; }
-        .container { width: 500px; max-width: 92vw; margin: 0 auto 40px; min-height: 420px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; box-sizing: border-box; }
-        h1 { color: #2c3e50; margin-bottom: 18px; }
+        .container { width: 500px; max-width: 92vw; margin: 0 auto 40px; min-height: 420px; background: var(--card-bg, #fff); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; box-sizing: border-box; }
+        h1 { color: var(--text, #2c3e50); margin-bottom: 18px; }
         .message-slot { min-height: 28px; margin-bottom: 12px; }
-        .error { color:#e74c3c; font-weight:600; }
+        .error { color: var(--danger, #e74c3c); font-weight:600; }
         .form-group { margin-bottom: 18px; text-align: left; }
         label { font-weight: 600; color: var(--text, #2c3e50); display:block; }
         input[type="text"] { width: 90%; padding: 10px; margin-top: 6px; border: 1px solid var(--border, #cbd5e1); border-radius: 6px; background: var(--input-bg, #fff); color: var(--text, #2c3e50); }

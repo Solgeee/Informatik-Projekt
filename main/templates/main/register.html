@@ -3,14 +3,13 @@
 <head>
     <title>Register</title>
     <style>
-        /* Copy styles from login.html for consistency */
-        body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
-        .container { max-width: 500px; margin: 60px auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; }
-        h1 { color: #2c3e50; margin-bottom: 24px; }
+        body { font-family: Arial, sans-serif; background: var(--bg, #f4f6fa); margin: 0; padding: 0; color: var(--text, #2c3e50); }
+        .container { max-width: 500px; margin: 60px auto; background: var(--card-bg, #fff); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); padding: 32px; text-align: center; }
+        h1 { color: var(--text, #2c3e50); margin-bottom: 24px; }
         .form-group { margin-bottom: 18px; text-align: left; }
-        input[type="text"], input[type="password"] { width: 90%; padding: 8px; margin-top: 6px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 10px 24px; background: #3498db; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
-        .btn:hover { background: #217dbb; }
+        input[type="text"], input[type="password"] { width: 90%; padding: 8px; margin-top: 6px; border: 1px solid var(--border, #ccc); border-radius: 4px; background: var(--input-bg, #fff); color: var(--text, #2c3e50); }
+        .btn { padding: 10px 24px; background: var(--link-btn-bg, #3498db); color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: var(--link-btn-bg-hover, #217dbb); }
     </style>
 </head>
 <body>

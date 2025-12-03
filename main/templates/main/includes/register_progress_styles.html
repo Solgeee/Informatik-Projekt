@@ -13,15 +13,16 @@
     padding: 14px 12px;
     border-radius: 12px;
     border: 1px solid var(--border, #dce3f0);
-    background: var(--card-muted, #f8fafc);
-    color: var(--muted-text, #6c7485);
+    /* Use theme-aware card muted/background if provided, otherwise fall back to card background */
+    background: var(--card-muted, var(--card-bg, #f8fafc));
+    color: var(--muted-text, var(--text, #6c7485));
     text-align: center;
     box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .reg-progress__number {
@@ -34,7 +35,8 @@
     justify-content: center;
     font-weight: 600;
     color: var(--text, #2c3e50);
-    background: #fff;
+    /* number circle uses input/card background so it adapts in dark mode */
+    background: var(--number-bg, var(--input-bg, #fff));
 }
 
 .reg-progress__label {
@@ -55,11 +57,13 @@
 .reg-progress__step.is-current .reg-progress__number {
     border-color: #3b82f6;
     color: #3b82f6;
+    background: var(--number-bg-current, var(--input-bg, #fff));
 }
 
 .reg-progress__step.is-complete {
     border-color: #10b981;
-    background: rgba(16, 185, 129, 0.08);
+    /* subtle success tint that works on light and dark: uses rgba over current bg */
+    background: color-mix(in srgb, #10b981 8%, transparent);
     color: #0f5132;
 }
 
