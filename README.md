@@ -1,8 +1,14 @@
 # Informatik‑Projekt
 
+***Einleitung:***
+
+Dieses Programm wurde für ein Softwareprojekt einiger Schüler des 12 Klasse Grundkurses an der John F. Kennedy Schule entwickelt. Das Programm hat die Funktion einer Voting-Platform und basiert auf Python. Es wurde von den Developern mit VS Code und Django gearbeitet. Mit dem Programm kann man sich als User mithilfe einer Emailverification registrieren und sich danach mit seinem Account anmelden. Durch das Speichern von Postleitzahlen, können User in Wählergruppen eingeteilt werden. Dies dient dazu, um das Ursprünglichen Ziel einer Wahl Platform für die deutsche Staatsmodernisierung zu modellieren. Das Programm kann vollständig funktionsfähig auf einem Local Host und auch über eine onrender.com Seite online mit einigen Einschränkungen abgerufen werden.
+Viel Spaß,
+
+Phillip; Leonard; Carl; Felix
 
 
-End‑to‑end guide to set up and run this Django project on a fresh Windows machine 
+***End‑to‑end guide to set up and run this Django project on a fresh Windows machine:***
 
 ## Prerequisites (Windows)
 - VS Code is already installed.
