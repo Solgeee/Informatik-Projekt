@@ -219,7 +219,7 @@ msgid "Account"
 msgstr "Konto"
 
 msgid "Tell us who you are"
-msgstr "Sagen Sie uns, wie sie heißen"
+msgstr "Sagen Sie uns, wie Sie heißen"
 
 msgid "Send the code"
 msgstr "Code senden"
